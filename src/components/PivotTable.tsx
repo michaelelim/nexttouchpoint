@@ -252,7 +252,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                       <div className="flex-1">
                         <div className="font-medium text-sm">Assessment</div>
                         {candidate.needsAssessment && (
-                          <Badge variant="outline" className="mt-1">Needs Assessment</Badge>
+                          <Badge variant="secondary" className="mt-1">Needs Assessment</Badge>
                         )}
                         {candidate.assessmentNotes && (
                           <p className="text-sm text-muted-foreground mt-1">
@@ -275,7 +275,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                 {/* Footer Information */}
                 <div className="flex gap-2 text-sm">
                   {candidate.isEmployed && (
-                    <Badge variant="outline">Employed</Badge>
+                    <Badge variant="secondary">Employed</Badge>
                   )}
                 </div>
               </div>
