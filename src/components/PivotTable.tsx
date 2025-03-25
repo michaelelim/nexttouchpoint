@@ -77,6 +77,23 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
     }
   }
 
+  const getCardBackgroundColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'active candidate':
+        return 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800'
+      case 'difficult to reach':
+        return 'bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-800'
+      case 'unable to contact':
+        return 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'
+      case 'got a job':
+        return 'bg-purple-50 dark:bg-purple-950 border-purple-200 dark:border-purple-800'
+      case 'active hold':
+        return 'bg-gray-50 dark:bg-gray-950 border-gray-200 dark:border-gray-800'
+      default:
+        return 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+    }
+  }
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
     toast.success('Copied to clipboard')
@@ -143,7 +160,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
         {filteredCandidates.map((candidate) => (
           <Card 
             key={candidate.id}
-            className="cursor-pointer hover:shadow-lg transition-shadow"
+            className={`cursor-pointer hover:shadow-lg transition-shadow border ${getCardBackgroundColor(candidate.status)}`}
             onClick={() => handleEditCandidate(candidate)}
           >
             <CardContent className="p-6">
