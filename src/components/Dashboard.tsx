@@ -5,7 +5,6 @@ import { format } from 'date-fns'
 import { Candidate } from '@/types/candidate'
 import { readExcelFile, exportToExcel } from '@/lib/excel-service'
 import PivotTable from './PivotTable'
-import DateFilter from './DateFilter'
 import ThemeToggle from './ThemeToggle'
 import { Button } from './ui/button'
 import CandidateEditDialog from './CandidateEditDialog'
@@ -57,33 +56,27 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <DateFilter
-            dateRange={dateRange}
-            onChange={setDateRange}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => document.getElementById('file-upload')?.click()}
+          >
+            Import Excel
+          </Button>
+          <input
+            id="file-upload"
+            type="file"
+            accept=".xlsx,.xls"
+            className="hidden"
+            onChange={handleFileUpload}
           />
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => document.getElementById('file-upload')?.click()}
-            >
-              Import Excel
-            </Button>
-            <input
-              id="file-upload"
-              type="file"
-              accept=".xlsx,.xls"
-              className="hidden"
-              onChange={handleFileUpload}
-            />
-            <Button
-              variant="outline"
-              onClick={handleExport}
-              disabled={candidates.length === 0}
-            >
-              Export Excel
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            onClick={handleExport}
+            disabled={candidates.length === 0}
+          >
+            Export Excel
+          </Button>
         </div>
         <ThemeToggle />
       </div>

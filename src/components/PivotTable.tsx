@@ -79,6 +79,15 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
       })
     : data;
 
+  // Helper function to format date consistently
+  const formatDateWithAdjustment = (dateString: string) => {
+    // Parse the date string to create a date object with the correct date
+    const [year, month, day] = dateString.split('-').map(Number);
+    // Create date with local time values to avoid timezone issues
+    const date = new Date(year, month - 1, day); 
+    return format(date, 'MMMM d, yyyy');
+  };
+
   const handleEditCandidate = (candidate: Candidate) => {
     // If next contact is changed, update status to contacted
     const updatedCandidate = {
@@ -108,7 +117,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
       
       <h2 className="text-xl font-semibold mt-8 mb-4">
         {selectedDateState 
-          ? `Candidates to Contact on ${format(new Date(selectedDateState), 'MMMM d, yyyy')}`
+          ? `Candidates to Contact on ${formatDateWithAdjustment(selectedDateState)}`
           : 'Showing All Candidates'}
       </h2>
       
