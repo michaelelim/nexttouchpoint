@@ -240,12 +240,12 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                 )}
 
                 {/* Last Touch Date */}
-                {candidate.lastTouchDate && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground border-t pt-2">
-                    <History className="h-4 w-4" />
-                    <span>Last Contact: {format(new Date(candidate.lastTouchDate), 'MMM d, yyyy')}</span>
-                  </div>
-                )}
+                <div className="flex items-center gap-2 text-sm text-muted-foreground border-t pt-2">
+                  <History className="h-4 w-4" />
+                  <span>Last Contact: {candidate.lastTouchDate 
+                    ? format(new Date(candidate.lastTouchDate), 'MMM d, yyyy')
+                    : 'Never'}</span>
+                </div>
 
                 {/* Footer Information */}
                 <div className="flex gap-2 text-sm">

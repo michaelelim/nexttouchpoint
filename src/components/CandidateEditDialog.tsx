@@ -58,7 +58,7 @@ export default function CandidateEditDialog({
       return {
         ...prev,
         nextContact: date,
-        lastTouch: now,
+        lastTouchDate: now,
         status: isCurrentOrPast ? 'Pending' : 'Contacted'
       }
     })
@@ -283,6 +283,17 @@ export default function CandidateEditDialog({
                   />
                 </PopoverContent>
               </Popover>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Last Touched</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={editedCandidate.lastTouchDate ? format(new Date(editedCandidate.lastTouchDate), 'PPP') : 'Not contacted yet'}
+                  readOnly
+                  className="bg-muted"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
