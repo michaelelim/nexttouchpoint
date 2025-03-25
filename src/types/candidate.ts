@@ -3,11 +3,14 @@ export interface Candidate {
   name: string
   email: string
   phone: string
+  camsNumber?: string
+  eapNumber?: string
   stream: string
   needsAssessment: boolean
+  assessmentNotes?: string
   license: string
   location: string
-  lastTouch: Date | null
+  lastTouchDate: Date | null
   nextContact: Date | null
   status: string
   notes: string
