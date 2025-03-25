@@ -83,28 +83,33 @@ export function CandidateBarGraph({ candidates, onBarClick }: CandidateBarGraphP
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <CardTitle>Candidates by Next Contact Date</CardTitle>
-          <div className="flex space-x-2">
-            <Button 
-              size="sm" 
-              variant={dayRange === 10 ? "default" : "outline"}
-              onClick={() => setDayRange(10)}
-            >
-              10 Days
-            </Button>
-            <Button 
-              size="sm" 
-              variant={dayRange === 20 ? "default" : "outline"}
-              onClick={() => setDayRange(20)}
-            >
-              20 Days
-            </Button>
-            <Button 
-              size="sm" 
-              variant={dayRange === 30 ? "default" : "outline"}
-              onClick={() => setDayRange(30)}
-            >
-              30 Days
-            </Button>
+          <div className="flex items-center space-x-2">
+            <div className="flex space-x-1 rounded-md border p-1 shadow-sm">
+              <Button 
+                size="sm" 
+                variant={dayRange === 10 ? "default" : "ghost"}
+                className="rounded-md px-3 py-1 text-xs"
+                onClick={() => setDayRange(10)}
+              >
+                10 Days
+              </Button>
+              <Button 
+                size="sm" 
+                variant={dayRange === 20 ? "default" : "ghost"}
+                className="rounded-md px-3 py-1 text-xs"
+                onClick={() => setDayRange(20)}
+              >
+                20 Days
+              </Button>
+              <Button 
+                size="sm" 
+                variant={dayRange === 30 ? "default" : "ghost"}
+                className="rounded-md px-3 py-1 text-xs"
+                onClick={() => setDayRange(30)}
+              >
+                30 Days
+              </Button>
+            </div>
           </div>
         </div>
       </CardHeader>
