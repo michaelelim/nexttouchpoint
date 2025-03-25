@@ -5,7 +5,7 @@ import { format, eachDayOfInterval, differenceInDays, parseISO } from 'date-fns'
 import { Candidate } from '@/types/candidate'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Copy, Mail, Phone, MapPin, Calendar, Briefcase, GraduationCap } from 'lucide-react'
+import { Copy, Mail, Phone, MapPin, Calendar, Briefcase, GraduationCap, Hash, ClipboardList, History } from 'lucide-react'
 import { toast } from 'sonner'
 import { CandidateBarGraph } from './CandidateBarGraph'
 import { Card, CardContent } from './ui/card'
@@ -96,7 +96,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
         onBarClick={(date) => setSelectedDate(format(date, 'yyyy-MM-dd'))}
       />
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
         {filteredCandidates.map((candidate) => (
           <Card 
             key={candidate.id}
@@ -160,6 +160,18 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                   </div>
                 </div>
 
+                {/* ID Numbers */}
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Hash className="h-4 w-4" />
+                    <span>CAMS: {candidate.camsNumber || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Hash className="h-4 w-4" />
+                    <span>EAP: {candidate.eapNumber || 'N/A'}</span>
+                  </div>
+                </div>
+
                 {/* Additional Information */}
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex items-center gap-2 text-muted-foreground">
@@ -184,11 +196,36 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                   </div>
                 </div>
 
+                {/* Assessment Section */}
+                {(candidate.needsAssessment || candidate.assessmentNotes) && (
+                  <div className="space-y-2 border-t pt-2">
+                    <div className="flex items-start gap-2">
+                      <ClipboardList className="h-4 w-4 mt-1 text-muted-foreground" />
+                      <div className="flex-1">
+                        <div className="font-medium text-sm">Assessment</div>
+                        {candidate.needsAssessment && (
+                          <Badge variant="outline" className="mt-1">Needs Assessment</Badge>
+                        )}
+                        {candidate.assessmentNotes && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {candidate.assessmentNotes}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Last Touch Date */}
+                {candidate.lastTouchDate && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground border-t pt-2">
+                    <History className="h-4 w-4" />
+                    <span>Last Contact: {format(new Date(candidate.lastTouchDate), 'MMM d, yyyy')}</span>
+                  </div>
+                )}
+
                 {/* Footer Information */}
                 <div className="flex gap-2 text-sm">
-                  {candidate.needsAssessment && (
-                    <Badge variant="outline">Needs Assessment</Badge>
-                  )}
                   {candidate.isEmployed && (
                     <Badge variant="outline">Employed</Badge>
                   )}
