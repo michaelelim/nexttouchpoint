@@ -94,7 +94,7 @@ export default function CandidateEditDialog({
           <Calendar
             mode="single"
             selected={value || undefined}
-            onSelect={onChange}
+            onSelect={(date: Date | undefined) => onChange(date || null)}
             initialFocus
           />
         </PopoverContent>
