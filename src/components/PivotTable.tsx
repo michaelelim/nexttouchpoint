@@ -70,22 +70,23 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
     toast.success('Copied to clipboard')
   }
 
-  const filteredDates = selectedDateState 
-    ? [selectedDateState] 
-    : dates.map(date => format(date, 'yyyy-MM-dd'))
-
   // Filter candidates based on selected date
-  const filteredCandidates = selectedDate
+  const filteredCandidates = selectedDateState
     ? data.filter((candidate) => {
         if (!candidate.nextContact) return false;
-        
-        // Convert both dates to YYYY-MM-DD format for comparison
         const candidateDate = new Date(candidate.nextContact).toISOString().split('T')[0];
-        const selectedDateStr = selectedDate.toISOString().split('T')[0];
-        
-        return candidateDate === selectedDateStr;
+        return candidateDate === selectedDateState;
       })
     : data;
+
+  const handleEditCandidate = (candidate: Candidate) => {
+    // If next contact is changed, update status to contacted
+    const updatedCandidate = {
+      ...candidate,
+      status: 'Contacted'
+    }
+    onEditCandidate(updatedCandidate)
+  }
 
   return (
     <div>
@@ -109,18 +110,66 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
               <TableHead>Next Contact</TableHead>
               <TableHead>Assessment</TableHead>
               <TableHead>Employed</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredCandidates.map((candidate) => (
-              <TableRow key={candidate.id}>
-                <TableCell>{candidate.name}</TableCell>
-                <TableCell>{candidate.email}</TableCell>
-                <TableCell>{candidate.phone}</TableCell>
+              <TableRow 
+                key={candidate.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => handleEditCandidate(candidate)}
+              >
+                <TableCell className="flex items-center gap-2">
+                  {candidate.name}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      copyToClipboard(candidate.name)
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+                <TableCell className="flex items-center gap-2">
+                  {candidate.email}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      copyToClipboard(candidate.email)
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+                <TableCell className="flex items-center gap-2">
+                  {candidate.phone}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      copyToClipboard(candidate.phone)
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </TableCell>
                 <TableCell>{candidate.stream}</TableCell>
                 <TableCell>{candidate.license}</TableCell>
                 <TableCell>{candidate.location}</TableCell>
-                <TableCell>{candidate.status}</TableCell>
+                <TableCell>
+                  <Badge className={getStatusColor(candidate.status)}>
+                    {candidate.status}
+                  </Badge>
+                </TableCell>
                 <TableCell>
                   {candidate.nextContact
                     ? format(new Date(candidate.nextContact), 'MMM d, yyyy')
@@ -128,6 +177,18 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                 </TableCell>
                 <TableCell>{candidate.needsAssessment ? 'Yes' : 'No'}</TableCell>
                 <TableCell>{candidate.isEmployed ? 'Yes' : 'No'}</TableCell>
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleEditCandidate(candidate)
+                    }}
+                  >
+                    Edit
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

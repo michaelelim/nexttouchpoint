@@ -1,6 +1,6 @@
 'use client'
 
-import { format, parseISO, startOfDay } from 'date-fns'
+import { format, parseISO, startOfDay, differenceInDays } from 'date-fns'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Candidate } from '@/types/candidate'
@@ -33,11 +33,23 @@ export function CandidateBarGraph({ candidates, onBarClick }: CandidateBarGraphP
 
   // Create chart data
   const chartData = Object.entries(candidatesByDate)
-    .map(([dateStr, { count, candidates }]) => ({
-      date: parseISO(dateStr),
-      count,
-      candidates,
-    }))
+    .map(([dateStr, { count, candidates }]) => {
+      const date = parseISO(dateStr)
+      const daysFromNow = differenceInDays(date, startOfDay(new Date()))
+      // Calculate color based on days from now (red to green gradient)
+      const maxDays = 30 // Adjust this value based on your date range
+      const colorValue = Math.max(0, Math.min(1, daysFromNow / maxDays))
+      const red = Math.round(255 * (1 - colorValue))
+      const green = Math.round(255 * colorValue)
+      const fill = `rgb(${red}, ${green}, 0)`
+
+      return {
+        date,
+        count,
+        candidates,
+        fill,
+      }
+    })
     .sort((a, b) => a.date.getTime() - b.date.getTime())
 
   const CustomTooltip = ({ active, payload }: any) => {
@@ -78,12 +90,16 @@ export function CandidateBarGraph({ candidates, onBarClick }: CandidateBarGraphP
                 dataKey="count"
                 fill="var(--primary)"
                 onClick={(data) => {
-                  if (onBarClick && data.date) {
-                    onBarClick(data.date)
+                  if (onBarClick && data.payload.date) {
+                    onBarClick(data.payload.date)
                   }
                 }}
                 className="cursor-pointer"
-              />
+              >
+                {chartData.map((entry, index) => (
+                  <rect key={`bar-${index}`} fill={entry.fill} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
