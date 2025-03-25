@@ -36,6 +36,7 @@ interface CandidateEditDialogProps {
 
 const STREAM_OPTIONS = ['A', 'B', 'C']
 const LICENSE_OPTIONS = ['No', 'G1', 'G2', 'Full G']
+const LOCATION_OPTIONS = ['Ajax', 'Pickering', 'Whitby', 'Oshawa', 'Other']
 
 export default function CandidateEditDialog({
   candidate,
@@ -215,14 +216,24 @@ export default function CandidateEditDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
+              <Label>Location</Label>
+              <Select
                 value={editedCandidate.location}
-                onChange={(e) =>
-                  setEditedCandidate((prev) => ({ ...prev, location: e.target.value }))
+                onValueChange={(value) =>
+                  setEditedCandidate((prev) => ({ ...prev, location: value }))
                 }
-              />
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {LOCATION_OPTIONS.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
@@ -250,7 +261,7 @@ export default function CandidateEditDialog({
           {/* Right Column */}
           <div className="space-y-6">
             <div className="space-y-2">
-              <Label>Next Contact</Label>
+              <Label>Next Contact Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -258,13 +269,15 @@ export default function CandidateEditDialog({
                     className={`w-full justify-start text-left font-normal ${!editedCandidate.nextContact && 'text-muted-foreground'}`}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {editedCandidate.nextContact ? format(editedCandidate.nextContact, 'PPP') : 'Pick a date'}
+                    {editedCandidate.nextContact 
+                      ? format(new Date(editedCandidate.nextContact), 'PPP') 
+                      : 'Pick a date'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={editedCandidate.nextContact || undefined}
+                    selected={editedCandidate.nextContact ? new Date(editedCandidate.nextContact) : undefined}
                     onSelect={handleNextContactChange}
                     initialFocus
                   />
@@ -470,10 +483,11 @@ export default function CandidateEditDialog({
             </div>
           </div>
         </div>
-        <DialogFooter className="px-2">
-          <Button type="submit" onClick={handleSave}>
-            Save changes
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
           </Button>
+          <Button onClick={handleSave}>Save Changes</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -88,12 +88,22 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
     onEditCandidate(updatedCandidate)
   }
 
+  const handleBarClick = (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd')
+    // If clicking the same date again, clear the selection
+    if (dateStr === selectedDateState) {
+      setSelectedDate(null)
+    } else {
+      setSelectedDate(dateStr)
+    }
+  }
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Candidate Follow-Up Dashboard</h1>
       <CandidateBarGraph 
         candidates={data} 
-        onBarClick={(date) => setSelectedDate(format(date, 'yyyy-MM-dd'))}
+        onBarClick={handleBarClick}
       />
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
@@ -168,7 +178,20 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Hash className="h-4 w-4" />
-                    <span>EAP: {candidate.eapNumber || 'N/A'}</span>
+                    <span className="flex-1">EAP: {candidate.eapNumber || 'N/A'}</span>
+                    {candidate.eapNumber && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          copyToClipboard(candidate.eapNumber!)
+                        }}
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    )}
                   </div>
                 </div>
 
