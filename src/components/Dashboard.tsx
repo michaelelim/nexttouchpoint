@@ -18,6 +18,7 @@ export default function Dashboard() {
   const [candidates, setCandidates] = useState<Candidate[]>([])
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -89,6 +90,8 @@ export default function Dashboard() {
           data={candidates}
           dateRange={dateRange}
           onEditCandidate={handleEditCandidate}
+          selectedDate={selectedDate}
+          onDateSelect={setSelectedDate}
         />
       </div>
 

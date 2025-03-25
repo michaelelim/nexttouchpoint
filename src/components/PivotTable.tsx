@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { format, eachDayOfInterval, differenceInDays, parseISO } from 'date-fns'
 import { Candidate } from '@/types/candidate'
 import { Button } from '@/components/ui/button'
@@ -18,10 +18,22 @@ interface PivotTableProps {
   }
   onEditCandidate: (candidate: Candidate) => void
   selectedDate: Date | null
+  onDateSelect?: (date: Date | null) => void
 }
 
-export default function PivotTable({ data, dateRange, onEditCandidate, selectedDate }: PivotTableProps) {
-  const [selectedDateState, setSelectedDate] = useState<string | null>(null)
+export default function PivotTable({ data, dateRange, onEditCandidate, selectedDate, onDateSelect }: PivotTableProps) {
+  const [selectedDateState, setSelectedDateState] = useState<string | null>(
+    selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null
+  )
+  
+  // Update internal state when prop changes
+  useEffect(() => {
+    if (selectedDate) {
+      setSelectedDateState(format(selectedDate, 'yyyy-MM-dd'))
+    } else {
+      setSelectedDateState(null)
+    }
+  }, [selectedDate])
   
   const dates = eachDayOfInterval({
     start: dateRange.start,
@@ -101,9 +113,15 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
     const dateStr = format(date, 'yyyy-MM-dd')
     // If clicking the same date again, clear the selection
     if (dateStr === selectedDateState) {
-      setSelectedDate(null)
+      setSelectedDateState(null)
+      if (onDateSelect) {
+        onDateSelect(null)
+      }
     } else {
-      setSelectedDate(dateStr)
+      setSelectedDateState(dateStr)
+      if (onDateSelect) {
+        onDateSelect(date)
+      }
     }
   }
 
