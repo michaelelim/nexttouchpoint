@@ -3,20 +3,84 @@
 /// <reference types="react" />
 /// <reference types="react-dom" />
 
+// Define React namespace explicitly
+declare namespace React {
+  interface FormEvent<T = Element> {
+    preventDefault(): void;
+    target: T;
+  }
+  
+  interface ChangeEvent<T = Element> {
+    target: T;
+  }
+  
+  interface ReactNode {}
+  
+  interface FC<P = {}> {
+    (props: P): ReactNode;
+  }
+  
+  type ElementType = any;
+  type ElementRef<T> = any;
+  type ComponentPropsWithoutRef<T> = any;
+  type JSXElementConstructor<P> = any;
+  type ReactElement<P = any, T extends string | JSXElementConstructor<any> = string | JSXElementConstructor<any>> = any;
+}
+
 // Declare JSX namespace to fix JSX element errors
 declare namespace JSX {
   interface IntrinsicElements {
     [elemName: string]: any;
   }
+  interface Element extends React.ReactElement {}
 }
 
 // Declare modules that don't have TypeScript declarations
+declare module 'react' {
+  export import React = React;
+  
+  // React Hooks
+  export function useState<T>(initialState: T | (() => T)): [T, (newState: T | ((prevState: T) => T)) => void];
+  export function useEffect(effect: () => void | (() => void), deps?: readonly any[]): void;
+  export function useCallback<T extends (...args: any[]) => any>(callback: T, deps: readonly any[]): T;
+  export function useMemo<T>(factory: () => T, deps: readonly any[]): T;
+  export function useRef<T = undefined>(initialValue?: T): { current: T };
+  
+  export const Fragment: unique symbol;
+  export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {}
+  export interface DOMAttributes<T> {}
+  export interface AriaAttributes {}
+  
+  export interface HTMLInputElement extends HTMLElement {
+    value: string;
+  }
+  
+  export interface HTMLFormElement extends HTMLElement {}
+  export interface HTMLElement {}
+}
+
 declare module 'sonner' {
+  import * as React from 'react';
+  
   export const toast: {
     success(message: string): void;
     error(message: string): void;
     [key: string]: any;
   };
+  
+  export interface ToasterProps {
+    position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'top-center' | 'bottom-center';
+    expand?: boolean;
+    visibleToasts?: number;
+    closeButton?: boolean;
+    offset?: string | number;
+    duration?: number;
+    theme?: 'light' | 'dark' | 'system';
+    richColors?: boolean;
+    [key: string]: any;
+  }
+  
+  export function Toaster(props?: ToasterProps): JSX.Element;
 }
 
 // Enable importing CSS modules
