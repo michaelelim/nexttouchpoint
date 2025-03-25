@@ -50,14 +50,14 @@ export default function CandidateEditDialog({
     onSave(editedCandidate)
   }
 
-  const handleNextContactChange = (date: Date | null) => {
+  const handleNextContactChange = (date: Date | undefined) => {
     setEditedCandidate((prev) => {
       const now = new Date()
       const isCurrentOrPast = date ? (isToday(date) || isPast(date)) : false
       
       return {
         ...prev,
-        nextContact: date,
+        nextContact: date || null,
         lastTouchDate: now,
         status: isCurrentOrPast ? 'Pending' : 'Contacted'
       }
@@ -376,12 +376,12 @@ export default function CandidateEditDialog({
                       <Calendar
                         mode="single"
                         selected={editedCandidate.payStubs?.firstPayStub || undefined}
-                        onSelect={(date) =>
+                        onSelect={(date: Date | undefined) =>
                           setEditedCandidate((prev) => ({
                             ...prev,
                             payStubs: {
                               ...prev.payStubs,
-                              firstPayStub: date
+                              firstPayStub: date || null
                             }
                           }))
                         }
@@ -407,12 +407,12 @@ export default function CandidateEditDialog({
                       <Calendar
                         mode="single"
                         selected={editedCandidate.payStubs?.secondPayStub || undefined}
-                        onSelect={(date) =>
+                        onSelect={(date: Date | undefined) =>
                           setEditedCandidate((prev) => ({
                             ...prev,
                             payStubs: {
                               ...prev.payStubs,
-                              secondPayStub: date
+                              secondPayStub: date || null
                             }
                           }))
                         }
@@ -438,12 +438,12 @@ export default function CandidateEditDialog({
                       <Calendar
                         mode="single"
                         selected={editedCandidate.payStubs?.thirdPayStub || undefined}
-                        onSelect={(date) =>
+                        onSelect={(date: Date | undefined) =>
                           setEditedCandidate((prev) => ({
                             ...prev,
                             payStubs: {
                               ...prev.payStubs,
-                              thirdPayStub: date
+                              thirdPayStub: date || null
                             }
                           }))
                         }
@@ -469,12 +469,12 @@ export default function CandidateEditDialog({
                       <Calendar
                         mode="single"
                         selected={editedCandidate.payStubs?.fourthPayStub || undefined}
-                        onSelect={(date) =>
+                        onSelect={(date: Date | undefined) =>
                           setEditedCandidate((prev) => ({
                             ...prev,
                             payStubs: {
                               ...prev.payStubs,
-                              fourthPayStub: date
+                              fourthPayStub: date || null
                             }
                           }))
                         }
@@ -500,12 +500,12 @@ export default function CandidateEditDialog({
                       <Calendar
                         mode="single"
                         selected={editedCandidate.payStubs?.fifthPayStub || undefined}
-                        onSelect={(date) =>
+                        onSelect={(date: Date | undefined) =>
                           setEditedCandidate((prev) => ({
                             ...prev,
                             payStubs: {
                               ...prev.payStubs,
-                              fifthPayStub: date
+                              fifthPayStub: date || null
                             }
                           }))
                         }
