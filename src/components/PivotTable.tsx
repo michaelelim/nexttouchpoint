@@ -1,12 +1,14 @@
 'use client'
 
-import { format, eachDayOfInterval, differenceInDays } from 'date-fns'
+import { useState } from 'react'
+import { format, eachDayOfInterval, differenceInDays, parseISO } from 'date-fns'
 import { Candidate } from '@/types/candidate'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Copy } from 'lucide-react'
 import { toast } from 'sonner'
-import CandidateBarGraph from './CandidateBarGraph'
+import { CandidateBarGraph } from './CandidateBarGraph'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
 
 interface PivotTableProps {
   data: Candidate[]
@@ -15,17 +17,34 @@ interface PivotTableProps {
     end: Date
   }
   onEditCandidate: (candidate: Candidate) => void
+  selectedDate: Date | null
 }
 
-export default function PivotTable({ data, dateRange, onEditCandidate }: PivotTableProps) {
-  const dates = eachDayOfInterval(dateRange)
+export default function PivotTable({ data, dateRange, onEditCandidate, selectedDate }: PivotTableProps) {
+  const [selectedDateState, setSelectedDate] = useState<string | null>(null)
+  
+  const dates = eachDayOfInterval({
+    start: dateRange.start,
+    end: dateRange.end
+  })
   
   // Group candidates by next contact date
   const candidatesByDate = dates.reduce((acc, date) => {
     const dateStr = format(date, 'yyyy-MM-dd')
-    acc[dateStr] = data.filter(
-      candidate => candidate.nextContact && format(candidate.nextContact, 'yyyy-MM-dd') === dateStr
-    )
+    acc[dateStr] = data.filter(candidate => {
+      if (!candidate.nextContact) return false
+      // Convert to local date string first to avoid timezone issues
+      const localDate = new Date(candidate.nextContact).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        timeZone: 'UTC'
+      })
+      // Parse back to Date object to get consistent formatting
+      const [month, day, year] = localDate.split('/')
+      const candidateDateStr = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+      return candidateDateStr === dateStr
+    })
     return acc
   }, {} as Record<string, Candidate[]>)
 
@@ -51,160 +70,68 @@ export default function PivotTable({ data, dateRange, onEditCandidate }: PivotTa
     toast.success('Copied to clipboard')
   }
 
+  const filteredDates = selectedDateState 
+    ? [selectedDateState] 
+    : dates.map(date => format(date, 'yyyy-MM-dd'))
+
+  // Filter candidates based on selected date
+  const filteredCandidates = selectedDate
+    ? data.filter((candidate) => {
+        if (!candidate.nextContact) return false;
+        
+        // Convert both dates to YYYY-MM-DD format for comparison
+        const candidateDate = new Date(candidate.nextContact).toISOString().split('T')[0];
+        const selectedDateStr = selectedDate.toISOString().split('T')[0];
+        
+        return candidateDate === selectedDateStr;
+      })
+    : data;
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Candidate Follow-Up Dashboard</h1>
-      <CandidateBarGraph data={data} dateRange={dateRange} />
+      <CandidateBarGraph 
+        candidates={data} 
+        onBarClick={(date) => setSelectedDate(format(date, 'yyyy-MM-dd'))}
+      />
       
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead>
-            <tr>
-              <th className="px-6 py-3 text-left align-top text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Date
-              </th>
-              <th className="px-6 py-3 text-left align-top text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Candidates
-              </th>
-              <th className="px-6 py-3 text-left align-top text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Details
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            {dates.map((date) => {
-              const dateStr = format(date, 'yyyy-MM-dd')
-              const candidates = candidatesByDate[dateStr] || []
-              
-              return (
-                <tr key={dateStr} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <td className="px-6 py-4 align-top whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                    {format(date, 'MMM dd, yyyy')}
-                  </td>
-                  <td className="px-6 py-4 align-top whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {candidates.length} candidates
-                  </td>
-                  <td className="px-6 py-4 align-top text-sm text-gray-500 dark:text-gray-400">
-                    <div className="space-y-4">
-                      {candidates.map(candidate => (
-                        <div key={candidate.id} className="flex flex-col gap-2 p-4 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600">
-                          <div className="flex items-center justify-between">
-                            <div className="space-y-1">
-                              <div className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                                {candidate.name}
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => copyToClipboard(candidate.name)}
-                                  className="h-6 w-6"
-                                >
-                                  <Copy className="h-3 w-3" />
-                                </Button>
-                              </div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-4">
-                                <span className="flex items-center gap-2">
-                                  {candidate.email}
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => copyToClipboard(candidate.email)}
-                                    className="h-6 w-6"
-                                  >
-                                    <Copy className="h-3 w-3" />
-                                  </Button>
-                                </span>
-                                <span className="flex items-center gap-2">
-                                  {candidate.phone}
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => copyToClipboard(candidate.phone)}
-                                    className="h-6 w-6"
-                                  >
-                                    <Copy className="h-3 w-3" />
-                                  </Button>
-                                </span>
-                              </div>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => onEditCandidate(candidate)}
-                            >
-                              Edit
-                            </Button>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-2 text-sm">
-                            <div>
-                              <span className="font-semibold">Stream:</span> {candidate.stream}
-                            </div>
-                            <div>
-                              <span className="font-semibold">License:</span> {candidate.license}
-                            </div>
-                            <div>
-                              <span className="font-semibold">Location:</span> {candidate.location}
-                            </div>
-                            <div>
-                              <span className="font-semibold">Needs Assessment:</span>{' '}
-                              {candidate.needsAssessment ? 'Yes' : 'No'}
-                            </div>
-                            {candidate.lastTouch && (
-                              <div>
-                                <span className="font-semibold">Last Touch:</span>{' '}
-                                {format(candidate.lastTouch, 'MMM dd, yyyy')}
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="flex flex-wrap gap-2">
-                            <Badge className={getStatusColor(candidate.status)}>
-                              {candidate.status}
-                            </Badge>
-                            {candidate.isEmployed && (
-                              <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-                                Employed
-                              </Badge>
-                            )}
-                          </div>
-
-                          {candidate.isEmployed && candidate.payStubs && (
-                            <div className="text-sm">
-                              <div className="font-semibold mb-1">Pay Stubs:</div>
-                              <div className="grid grid-cols-2 gap-2">
-                                {candidate.payStubs.firstPayStub && (
-                                  <div>1st: {format(candidate.payStubs.firstPayStub, 'MMM dd')}</div>
-                                )}
-                                {candidate.payStubs.secondPayStub && (
-                                  <div>2nd: {format(candidate.payStubs.secondPayStub, 'MMM dd')}</div>
-                                )}
-                                {candidate.payStubs.thirdPayStub && (
-                                  <div>3rd: {format(candidate.payStubs.thirdPayStub, 'MMM dd')}</div>
-                                )}
-                                {candidate.payStubs.fourthPayStub && (
-                                  <div>4th: {format(candidate.payStubs.fourthPayStub, 'MMM dd')}</div>
-                                )}
-                                {candidate.payStubs.fifthPayStub && (
-                                  <div>5th: {format(candidate.payStubs.fifthPayStub, 'MMM dd')}</div>
-                                )}
-                              </div>
-                            </div>
-                          )}
-
-                          {candidate.notes && (
-                            <div className="text-sm">
-                              <span className="font-semibold">Notes:</span> {candidate.notes}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Phone</TableHead>
+              <TableHead>Stream</TableHead>
+              <TableHead>License</TableHead>
+              <TableHead>Location</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Next Contact</TableHead>
+              <TableHead>Assessment</TableHead>
+              <TableHead>Employed</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredCandidates.map((candidate) => (
+              <TableRow key={candidate.id}>
+                <TableCell>{candidate.name}</TableCell>
+                <TableCell>{candidate.email}</TableCell>
+                <TableCell>{candidate.phone}</TableCell>
+                <TableCell>{candidate.stream}</TableCell>
+                <TableCell>{candidate.license}</TableCell>
+                <TableCell>{candidate.location}</TableCell>
+                <TableCell>{candidate.status}</TableCell>
+                <TableCell>
+                  {candidate.nextContact
+                    ? format(new Date(candidate.nextContact), 'MMM d, yyyy')
+                    : ''}
+                </TableCell>
+                <TableCell>{candidate.needsAssessment ? 'Yes' : 'No'}</TableCell>
+                <TableCell>{candidate.isEmployed ? 'Yes' : 'No'}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     </div>
   )

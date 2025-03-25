@@ -1,63 +1,57 @@
 'use client'
 
-import { format, differenceInDays, parseISO } from 'date-fns'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { format, parseISO, startOfDay } from 'date-fns'
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Candidate } from '@/types/candidate'
 
 interface CandidateBarGraphProps {
-  data: Candidate[]
-  dateRange: {
-    start: Date
-    end: Date
-  }
+  candidates: Candidate[]
+  onBarClick?: (date: Date) => void
 }
 
-export default function CandidateBarGraph({ data, dateRange }: CandidateBarGraphProps) {
-  const today = new Date()
+export function CandidateBarGraph({ candidates, onBarClick }: CandidateBarGraphProps) {
+  // Process candidate counts by next contact date
+  const candidatesByDate = candidates.reduce((acc, candidate) => {
+    if (!candidate.nextContact) return acc
 
-  // Process data for the chart
-  const candidateCounts = data.reduce((acc, candidate) => {
-    if (candidate.nextContact) {
-      const dateStr = format(candidate.nextContact, 'yyyy-MM-dd')
-      acc[dateStr] = (acc[dateStr] || 0) + 1
-    }
-    return acc
-  }, {} as Record<string, number>)
-
-  const chartData = Object.entries(candidateCounts)
-    .map(([date, count]) => {
-      const parsedDate = parseISO(date)
-      const daysFromToday = differenceInDays(parsedDate, today)
-      return {
-        date: format(parsedDate, 'MMM dd'),
-        fullDate: parsedDate,
-        candidates: count,
-        daysFromToday
+    // Convert to local date string to avoid timezone issues
+    const dateKey = new Date(candidate.nextContact).toISOString().split('T')[0]
+    
+    if (!acc[dateKey]) {
+      acc[dateKey] = {
+        candidates: [],
+        count: 0,
       }
-    })
-    .sort((a, b) => a.daysFromToday - b.daysFromToday)
-
-  const getBarColor = (daysFromToday: number) => {
-    // Normalize days to a 0-1 scale for color interpolation
-    const maxDays = 14 // Assuming two weeks as max range
-    const normalizedDays = Math.min(Math.max(daysFromToday, 0), maxDays) / maxDays
+    }
     
-    // RGB values for gradient from red (255,59,48) to green (52,199,89)
-    const r = Math.round(255 - (255 - 52) * normalizedDays)
-    const g = Math.round(59 + (199 - 59) * normalizedDays)
-    const b = Math.round(48 + (89 - 48) * normalizedDays)
+    acc[dateKey].candidates.push(candidate)
+    acc[dateKey].count += 1
     
-    return `rgb(${r},${g},${b})`
-  }
+    return acc
+  }, {} as Record<string, { candidates: Candidate[]; count: number }>)
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  // Create chart data
+  const chartData = Object.entries(candidatesByDate)
+    .map(([dateStr, { count, candidates }]) => ({
+      date: parseISO(dateStr),
+      count,
+      candidates,
+    }))
+    .sort((a, b) => a.date.getTime() - b.date.getTime())
+
+  const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
+      const data = payload[0].payload
       return (
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-2 rounded-lg shadow-lg">
-          <p className="font-medium">{label}</p>
-          <p className="text-sm text-gray-600 dark:text-gray-300">
-            {payload[0].value} candidate{payload[0].value !== 1 ? 's' : ''}
-          </p>
+        <div className="bg-background border rounded p-2 shadow-lg">
+          <p className="font-semibold">{format(data.date, 'MMM d, yyyy')}</p>
+          <p>Candidates: {data.count}</p>
+          <div className="mt-1 text-sm">
+            {data.candidates.map((candidate: Candidate) => (
+              <div key={candidate.id}>{candidate.name}</div>
+            ))}
+          </div>
         </div>
       )
     }
@@ -65,29 +59,35 @@ export default function CandidateBarGraph({ data, dateRange }: CandidateBarGraph
   }
 
   return (
-    <div className="w-full h-48 mb-6">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 5 }}>
-          <XAxis 
-            dataKey="date" 
-            tick={{ fill: 'currentColor' }}
-            tickLine={{ stroke: 'currentColor' }}
-          />
-          <YAxis 
-            tick={{ fill: 'currentColor' }}
-            tickLine={{ stroke: 'currentColor' }}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="candidates" radius={[4, 4, 0, 0]}>
-            {chartData.map((entry, index) => (
-              <Cell 
-                key={`cell-${index}`} 
-                fill={getBarColor(entry.daysFromToday)}
+    <Card>
+      <CardHeader>
+        <CardTitle>Candidates by Next Contact Date</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="h-[200px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData}>
+              <XAxis
+                dataKey="date"
+                tickFormatter={(date) => format(date, 'MMM d')}
+                interval={0}
               />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
+              <YAxis allowDecimals={false} />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar
+                dataKey="count"
+                fill="var(--primary)"
+                onClick={(data) => {
+                  if (onBarClick && data.date) {
+                    onBarClick(data.date)
+                  }
+                }}
+                className="cursor-pointer"
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
   )
 } 
