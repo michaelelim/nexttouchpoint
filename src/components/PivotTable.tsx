@@ -5,7 +5,7 @@ import { format, eachDayOfInterval, differenceInDays, parseISO } from 'date-fns'
 import { Candidate } from '@/types/candidate'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Copy, Mail, Phone, MapPin, Calendar, Briefcase, GraduationCap, Hash, ClipboardList, History } from 'lucide-react'
+import { Copy, Mail, Phone, MapPin, Calendar, GraduationCap, Hash, ClipboardList, History } from 'lucide-react'
 import { toast } from 'sonner'
 import { CandidateBarGraph } from './CandidateBarGraph'
 import { Card, CardContent } from './ui/card'
@@ -106,7 +106,13 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
         onBarClick={handleBarClick}
       />
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+      <h2 className="text-xl font-semibold mt-8 mb-4">
+        {selectedDateState 
+          ? `Candidates to Contact on ${format(new Date(selectedDateState), 'MMMM d, yyyy')}`
+          : 'Showing All Candidates'}
+      </h2>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredCandidates.map((candidate) => (
           <Card 
             key={candidate.id}
@@ -195,19 +201,11 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                   </div>
                 </div>
 
-                {/* Additional Information */}
+                {/* Stream and Next Contact */}
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <GraduationCap className="h-4 w-4" />
                     <span>{candidate.stream}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Briefcase className="h-4 w-4" />
-                    <span>{candidate.license}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <MapPin className="h-4 w-4" />
-                    <span>{candidate.location}</span>
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Calendar className="h-4 w-4" />

@@ -174,6 +174,42 @@ export default function CandidateEditDialog({
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="camsNumber">CAMS #</Label>
+              <Input
+                id="camsNumber"
+                value={editedCandidate.camsNumber || ''}
+                onChange={(e) =>
+                  setEditedCandidate((prev) => ({ ...prev, camsNumber: e.target.value }))
+                }
+                placeholder="Enter CAMS number"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="eapNumber">EAP #</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="eapNumber"
+                  value={editedCandidate.eapNumber || ''}
+                  onChange={(e) =>
+                    setEditedCandidate((prev) => ({ ...prev, eapNumber: e.target.value }))
+                  }
+                  placeholder="Enter EAP number"
+                />
+                {editedCandidate.eapNumber && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => copyToClipboard(editedCandidate.eapNumber!)}
+                    className="h-10 w-10"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
               <Label>Stream</Label>
               <Select
                 value={editedCandidate.stream}
