@@ -5,10 +5,10 @@ import { format, eachDayOfInterval, differenceInDays, parseISO } from 'date-fns'
 import { Candidate } from '@/types/candidate'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Copy } from 'lucide-react'
+import { Copy, Mail, Phone, MapPin, Calendar, Briefcase, GraduationCap } from 'lucide-react'
 import { toast } from 'sonner'
 import { CandidateBarGraph } from './CandidateBarGraph'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
+import { Card, CardContent } from './ui/card'
 
 interface PivotTableProps {
   data: Candidate[]
@@ -96,32 +96,23 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
         onBarClick={(date) => setSelectedDate(format(date, 'yyyy-MM-dd'))}
       />
       
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Stream</TableHead>
-              <TableHead>License</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Next Contact</TableHead>
-              <TableHead>Assessment</TableHead>
-              <TableHead>Employed</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredCandidates.map((candidate) => (
-              <TableRow 
-                key={candidate.id}
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => handleEditCandidate(candidate)}
-              >
-                <TableCell className="flex items-center gap-2">
-                  {candidate.name}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-6">
+        {filteredCandidates.map((candidate) => (
+          <Card 
+            key={candidate.id}
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => handleEditCandidate(candidate)}
+          >
+            <CardContent className="p-6">
+              <div className="flex flex-col space-y-4">
+                {/* Header with name and status */}
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold truncate">{candidate.name}</h3>
+                    <Badge className={getStatusColor(candidate.status)}>
+                      {candidate.status}
+                    </Badge>
+                  </div>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -133,66 +124,79 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
-                </TableCell>
-                <TableCell className="flex items-center gap-2">
-                  {candidate.email}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      copyToClipboard(candidate.email)
-                    }}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-                <TableCell className="flex items-center gap-2">
-                  {candidate.phone}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      copyToClipboard(candidate.phone)
-                    }}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-                <TableCell>{candidate.stream}</TableCell>
-                <TableCell>{candidate.license}</TableCell>
-                <TableCell>{candidate.location}</TableCell>
-                <TableCell>
-                  <Badge className={getStatusColor(candidate.status)}>
-                    {candidate.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {candidate.nextContact
-                    ? format(new Date(candidate.nextContact), 'MMM d, yyyy')
-                    : ''}
-                </TableCell>
-                <TableCell>{candidate.needsAssessment ? 'Yes' : 'No'}</TableCell>
-                <TableCell>{candidate.isEmployed ? 'Yes' : 'No'}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleEditCandidate(candidate)
-                    }}
-                  >
-                    Edit
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                </div>
+
+                {/* Contact Information */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Mail className="h-4 w-4" />
+                    <span className="flex-1 truncate">{candidate.email}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        copyToClipboard(candidate.email)
+                      }}
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Phone className="h-4 w-4" />
+                    <span className="flex-1">{candidate.phone}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        copyToClipboard(candidate.phone)
+                      }}
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Additional Information */}
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <GraduationCap className="h-4 w-4" />
+                    <span>{candidate.stream}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Briefcase className="h-4 w-4" />
+                    <span>{candidate.license}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    <span>{candidate.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span>
+                      {candidate.nextContact
+                        ? format(new Date(candidate.nextContact), 'MMM d')
+                        : 'No date'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Footer Information */}
+                <div className="flex gap-2 text-sm">
+                  {candidate.needsAssessment && (
+                    <Badge variant="outline">Needs Assessment</Badge>
+                  )}
+                  {candidate.isEmployed && (
+                    <Badge variant="outline">Employed</Badge>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </div>
   )
