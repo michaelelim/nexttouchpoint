@@ -27,13 +27,72 @@ export default function Dashboard() {
     if (!searchQuery.trim()) return candidates;
     
     const query = searchQuery.toLowerCase().trim();
-    return candidates.filter(candidate => 
-      (candidate.name || '').toLowerCase().includes(query) ||
-      (candidate.email || '').toLowerCase().includes(query) ||
-      (candidate.phone || '').toLowerCase().includes(query) ||
-      (candidate.camsNumber ? candidate.camsNumber.toLowerCase().includes(query) : false) ||
-      (candidate.eapNumber ? candidate.eapNumber.toLowerCase().includes(query) : false)
-    );
+    
+    return candidates.filter(candidate => {
+      // Check if it's a direct match in any standard field
+      // This catches both primitive fields and any custom fields added during Excel import
+      for (const [key, value] of Object.entries(candidate)) {
+        // Skip non-searchable fields like dates and objects
+        if (value === null || value === undefined) continue;
+        if (typeof value === 'boolean') continue;
+        
+        // Format dates for searching
+        if (value instanceof Date) {
+          if (format(value, 'MMM d, yyyy').toLowerCase().includes(query)) {
+            return true;
+          }
+          continue;
+        }
+        
+        // Skip complex objects (but we'll handle them separately)
+        if (typeof value === 'object') continue;
+        
+        // Convert value to string and check if it includes the query
+        const strValue = String(value).toLowerCase();
+        if (strValue.includes(query)) {
+          return true;
+        }
+      }
+      
+      // Additional checks for nested fields
+      if (candidate.payStubs) {
+        // Convert any date fields in payStubs to strings for searching
+        const payStubDates = [
+          candidate.payStubs.firstPayStub,
+          candidate.payStubs.secondPayStub,
+          candidate.payStubs.thirdPayStub,
+          candidate.payStubs.fourthPayStub,
+          candidate.payStubs.fifthPayStub
+        ].filter(Boolean);
+        
+        for (const date of payStubDates) {
+          if (date && format(new Date(date), 'MMM d, yyyy').toLowerCase().includes(query)) {
+            return true;
+          }
+        }
+      }
+      
+      // Check any additional fields that might have been added during import
+      // This catches fields that aren't in the Candidate type definition but exist in the data
+      const candidateAny = candidate as any;
+      for (const key in candidateAny) {
+        if (
+          !Object.prototype.hasOwnProperty.call(candidateAny, key) ||
+          key in candidate // Skip fields we already checked
+        ) continue;
+        
+        const value = candidateAny[key];
+        if (value === null || value === undefined) continue;
+        
+        // Convert to string and search
+        const strValue = String(value).toLowerCase();
+        if (strValue.includes(query)) {
+          return true;
+        }
+      }
+      
+      return false;
+    });
   }, [candidates, searchQuery]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
