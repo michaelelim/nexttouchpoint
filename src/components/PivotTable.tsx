@@ -22,7 +22,7 @@ interface PivotTableProps {
     start: Date
     end: Date
   }
-  onEditCandidate: (candidate: Candidate) => void
+  onEditCandidate: (candidate: Candidate, openDialog?: boolean) => void
   selectedDate: Date | null
   onDateSelect?: (date: Date | null) => void
 }
@@ -124,12 +124,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
   };
 
   const handleEditCandidate = (candidate: Candidate) => {
-    // If next contact is changed, update status to contacted
-    const updatedCandidate = {
-      ...candidate,
-      status: 'Contacted'
-    }
-    onEditCandidate(updatedCandidate)
+    onEditCandidate(candidate, true);
   }
 
   const handleBarClick = (date: Date) => {
@@ -161,7 +156,37 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
       ...candidate,
       status: newStatus
     };
-    onEditCandidate(updatedCandidate);
+    // Update the candidate without triggering the edit dialog
+    onEditCandidate(updatedCandidate, false);
+  };
+
+  // Add a category mapping for the status values
+  const getCategoryFromStatus = (status: string): string => {
+    // Convert status to lowercase for case-insensitive matching
+    const lowerStatus = status.toLowerCase();
+    
+    // Predefined category statuses
+    if (lowerStatus === 'active candidate' || 
+        lowerStatus === 'difficult to reach' || 
+        lowerStatus === 'unable to contact' || 
+        lowerStatus === 'got a job' || 
+        lowerStatus === 'active hold') {
+      return status; // The status is already a category
+    }
+    
+    // Default mapping for other statuses
+    if (lowerStatus.includes('pending')) return 'Active Candidate';
+    if (lowerStatus.includes('contacted')) return 'Active Candidate'; 
+    if (lowerStatus.includes('follow up')) return 'Active Candidate';
+    if (lowerStatus.includes('not interested')) return 'Unable to Contact';
+    if (lowerStatus.includes('converted') || lowerStatus.includes('job')) return 'Got a Job';
+    
+    return 'Active Candidate'; // Default category
+  };
+
+  // Get the current category of a candidate
+  const getCandidateCategory = (candidate: Candidate): string => {
+    return getCategoryFromStatus(candidate.status);
   };
 
   return (
@@ -179,172 +204,189 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
       </h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredCandidates.map((candidate) => (
-          <Card 
-            key={candidate.id}
-            className={`cursor-pointer hover:shadow-lg transition-shadow border ${getCardBackgroundColor(candidate.status)}`}
-            onClick={() => handleEditCandidate(candidate)}
-          >
-            <CardContent className="p-6">
-              <div className="flex flex-col space-y-4">
-                {/* Header with name and status */}
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold truncate">{candidate.name}</h3>
-                    <div className="flex gap-2 items-center">
-                      <Badge className={getStatusColor(candidate.status)}>
-                        {candidate.status}
-                      </Badge>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                            <Circle className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {statusOptions.map(option => (
-                            <DropdownMenuItem
-                              key={option.value}
-                              className={`flex items-center gap-2 ${option.value === candidate.status ? 'bg-muted' : ''}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleChangeStatus(candidate, option.value);
-                              }}
-                            >
-                              <div className={`w-3 h-3 rounded-full ${option.color}`} />
-                              {option.label}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+        {filteredCandidates.map((candidate) => {
+          const currentCategory = getCandidateCategory(candidate);
+          
+          return (
+            <Card 
+              key={candidate.id}
+              className={`cursor-pointer hover:shadow-lg transition-shadow border ${getCardBackgroundColor(currentCategory)}`}
+              onClick={() => handleEditCandidate(candidate)}
+            >
+              <CardContent className="p-6">
+                <div className="flex flex-col space-y-4">
+                  {/* Header with name and status */}
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold truncate">{candidate.name}</h3>
+                      <div className="flex flex-wrap gap-2 items-center mt-1">
+                        {/* Status Badge */}
+                        <Badge className={getStatusColor(candidate.status)}>
+                          {candidate.status}
+                        </Badge>
+                        
+                        {/* Category Badge */}
+                        <div className={`inline-flex items-center rounded-md border-2 px-2 py-1 text-xs font-medium ${
+                          currentCategory === 'Active Candidate' ? 'border-green-500 text-green-700 dark:text-green-400' : 
+                          currentCategory === 'Difficult to Reach' ? 'border-yellow-500 text-yellow-700 dark:text-yellow-400' :
+                          currentCategory === 'Unable to Contact' ? 'border-red-500 text-red-700 dark:text-red-400' :
+                          currentCategory === 'Got a Job' ? 'border-purple-500 text-purple-700 dark:text-purple-400' :
+                          'border-gray-500 text-gray-700 dark:text-gray-400'
+                        }`}>
+                          {currentCategory}
+                        </div>
+                        
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                              <Circle className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {statusOptions.map(option => (
+                              <DropdownMenuItem
+                                key={option.value}
+                                className={`flex items-center gap-2 ${option.value === currentCategory ? 'bg-muted' : ''}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleChangeStatus(candidate, option.value);
+                                }}
+                              >
+                                <div className={`w-3 h-3 rounded-full ${option.color}`} />
+                                {option.label}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      copyToClipboard(candidate.name)
-                    }}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
-
-                {/* Contact Information */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Mail className="h-4 w-4" />
-                    <span className="flex-1 truncate">{candidate.email}</span>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-6 w-6 p-0"
+                      className="h-8 w-8 p-0"
                       onClick={(e) => {
                         e.stopPropagation()
-                        copyToClipboard(candidate.email)
+                        copyToClipboard(candidate.name)
                       }}
                     >
-                      <Copy className="h-3 w-3" />
+                      <Copy className="h-4 w-4" />
                     </Button>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Phone className="h-4 w-4" />
-                    <span className="flex-1">{candidate.phone}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        copyToClipboard(candidate.phone)
-                      }}
-                    >
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
 
-                {/* ID Numbers */}
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Hash className="h-4 w-4" />
-                    <span>CAMS: {candidate.camsNumber || 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Hash className="h-4 w-4" />
-                    <span className="flex-1">EAP: {candidate.eapNumber || 'N/A'}</span>
-                    {candidate.eapNumber && (
+                  {/* Contact Information */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Mail className="h-4 w-4" />
+                      <span className="flex-1 truncate">{candidate.email}</span>
                       <Button
                         variant="ghost"
                         size="sm"
                         className="h-6 w-6 p-0"
                         onClick={(e) => {
                           e.stopPropagation()
-                          copyToClipboard(candidate.eapNumber!)
+                          copyToClipboard(candidate.email)
                         }}
                       >
                         <Copy className="h-3 w-3" />
                       </Button>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Phone className="h-4 w-4" />
+                      <span className="flex-1">{candidate.phone}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          copyToClipboard(candidate.phone)
+                        }}
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* ID Numbers */}
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Hash className="h-4 w-4" />
+                      <span>CAMS: {candidate.camsNumber || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Hash className="h-4 w-4" />
+                      <span className="flex-1">EAP: {candidate.eapNumber || 'N/A'}</span>
+                      {candidate.eapNumber && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            copyToClipboard(candidate.eapNumber!)
+                          }}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Stream and Next Contact */}
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <GraduationCap className="h-4 w-4" />
+                      <span>{candidate.stream}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      <span>
+                        {candidate.nextContact
+                          ? format(new Date(candidate.nextContact), 'MMM d')
+                          : 'No date'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Assessment Section */}
+                  {(candidate.needsAssessment || candidate.assessmentNotes) && (
+                    <div className="space-y-2 border-t pt-2">
+                      <div className="flex items-start gap-2">
+                        <ClipboardList className="h-4 w-4 mt-1 text-muted-foreground" />
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">Assessment</div>
+                          {candidate.needsAssessment && (
+                            <Badge variant="secondary" className="mt-1">Needs Assessment</Badge>
+                          )}
+                          {candidate.assessmentNotes && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {candidate.assessmentNotes}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Last Touch Date */}
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground border-t pt-2">
+                    <History className="h-4 w-4" />
+                    <span>Last Contact: {candidate.lastTouchDate 
+                      ? format(new Date(candidate.lastTouchDate), 'MMM d, yyyy')
+                      : 'Never'}</span>
+                  </div>
+
+                  {/* Footer Information */}
+                  <div className="flex gap-2 text-sm">
+                    {candidate.isEmployed && (
+                      <Badge variant="secondary">Employed</Badge>
                     )}
                   </div>
                 </div>
-
-                {/* Stream and Next Contact */}
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <GraduationCap className="h-4 w-4" />
-                    <span>{candidate.stream}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    <span>
-                      {candidate.nextContact
-                        ? format(new Date(candidate.nextContact), 'MMM d')
-                        : 'No date'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Assessment Section */}
-                {(candidate.needsAssessment || candidate.assessmentNotes) && (
-                  <div className="space-y-2 border-t pt-2">
-                    <div className="flex items-start gap-2">
-                      <ClipboardList className="h-4 w-4 mt-1 text-muted-foreground" />
-                      <div className="flex-1">
-                        <div className="font-medium text-sm">Assessment</div>
-                        {candidate.needsAssessment && (
-                          <Badge variant="secondary" className="mt-1">Needs Assessment</Badge>
-                        )}
-                        {candidate.assessmentNotes && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {candidate.assessmentNotes}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Last Touch Date */}
-                <div className="flex items-center gap-2 text-sm text-muted-foreground border-t pt-2">
-                  <History className="h-4 w-4" />
-                  <span>Last Contact: {candidate.lastTouchDate 
-                    ? format(new Date(candidate.lastTouchDate), 'MMM d, yyyy')
-                    : 'Never'}</span>
-                </div>
-
-                {/* Footer Information */}
-                <div className="flex gap-2 text-sm">
-                  {candidate.isEmployed && (
-                    <Badge variant="secondary">Employed</Badge>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
     </div>
   )

@@ -57,9 +57,15 @@ export default function Dashboard() {
     }
   }
 
-  const handleEditCandidate = (candidate: Candidate) => {
-    setSelectedCandidate(candidate)
-    setIsEditDialogOpen(true)
+  const handleEditCandidate = (candidate: Candidate, openDialog: boolean = true) => {
+    setCandidates(prev => 
+      prev.map(c => c.id === candidate.id ? candidate : c)
+    )
+    
+    if (openDialog) {
+      setSelectedCandidate(candidate)
+      setIsEditDialogOpen(true)
+    }
   }
 
   const handleSaveCandidate = (updatedCandidate: Candidate) => {
