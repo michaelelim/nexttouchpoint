@@ -5,7 +5,8 @@ import { format, parseISO, startOfDay, differenceInDays, addDays } from 'date-fn
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Candidate } from '@/types/candidate'
-import { Button } from './ui/button'
+import { Label } from './ui/label'
+import { RadioGroup, RadioGroupItem } from './ui/radio-group'
 
 interface CandidateBarGraphProps {
   candidates: Candidate[]
@@ -83,34 +84,24 @@ export function CandidateBarGraph({ candidates, onBarClick }: CandidateBarGraphP
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <CardTitle>Candidates by Next Contact Date</CardTitle>
-          <div className="flex items-center space-x-2">
-            <div className="flex space-x-1 rounded-md border p-1 shadow-sm">
-              <Button 
-                size="sm" 
-                variant={dayRange === 10 ? "default" : "ghost"}
-                className="rounded-md px-3 py-1 text-xs"
-                onClick={() => setDayRange(10)}
-              >
-                10 Days
-              </Button>
-              <Button 
-                size="sm" 
-                variant={dayRange === 20 ? "default" : "ghost"}
-                className="rounded-md px-3 py-1 text-xs"
-                onClick={() => setDayRange(20)}
-              >
-                20 Days
-              </Button>
-              <Button 
-                size="sm" 
-                variant={dayRange === 30 ? "default" : "ghost"}
-                className="rounded-md px-3 py-1 text-xs"
-                onClick={() => setDayRange(30)}
-              >
-                30 Days
-              </Button>
+          <RadioGroup
+            value={dayRange.toString()}
+            onValueChange={(value) => setDayRange(parseInt(value))}
+            className="flex space-x-4"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="10" id="r10" />
+              <Label htmlFor="r10">10 Days</Label>
             </div>
-          </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="20" id="r20" />
+              <Label htmlFor="r20">20 Days</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="30" id="r30" />
+              <Label htmlFor="r30">30 Days</Label>
+            </div>
+          </RadioGroup>
         </div>
       </CardHeader>
       <CardContent>
