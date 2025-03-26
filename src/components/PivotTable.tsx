@@ -5,10 +5,16 @@ import { format, eachDayOfInterval, differenceInDays, parseISO } from 'date-fns'
 import { Candidate } from '@/types/candidate'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Copy, Mail, Phone, MapPin, Calendar, GraduationCap, Hash, ClipboardList, History } from 'lucide-react'
+import { Copy, Mail, Phone, MapPin, Calendar, GraduationCap, Hash, ClipboardList, History, Circle } from 'lucide-react'
 import { toast } from 'sonner'
 import { CandidateBarGraph } from './CandidateBarGraph'
 import { Card, CardContent } from './ui/card'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface PivotTableProps {
   data: Candidate[]
@@ -142,6 +148,22 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
     }
   }
 
+  const statusOptions = [
+    { label: 'Active Candidate', value: 'Active Candidate', color: 'text-green-500', bgColor: 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' },
+    { label: 'Difficult to Reach', value: 'Difficult to Reach', color: 'text-yellow-500', bgColor: 'bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-800' },
+    { label: 'Unable to Contact', value: 'Unable to Contact', color: 'text-red-500', bgColor: 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800' },
+    { label: 'Got a Job', value: 'Got a Job', color: 'text-purple-500', bgColor: 'bg-purple-50 dark:bg-purple-950 border-purple-200 dark:border-purple-800' },
+    { label: 'Active Hold', value: 'Active Hold', color: 'text-gray-500', bgColor: 'bg-gray-50 dark:bg-gray-950 border-gray-200 dark:border-gray-800' },
+  ];
+
+  const handleChangeStatus = (candidate: Candidate, newStatus: string) => {
+    const updatedCandidate = {
+      ...candidate,
+      status: newStatus
+    };
+    onEditCandidate(updatedCandidate);
+  };
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Candidate Follow-Up Dashboard</h1>
@@ -169,9 +191,33 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold truncate">{candidate.name}</h3>
-                    <Badge className={getStatusColor(candidate.status)}>
-                      {candidate.status}
-                    </Badge>
+                    <div className="flex gap-2 items-center">
+                      <Badge className={getStatusColor(candidate.status)}>
+                        {candidate.status}
+                      </Badge>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                            <Circle className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {statusOptions.map(option => (
+                            <DropdownMenuItem
+                              key={option.value}
+                              className={`flex items-center gap-2 ${option.value === candidate.status ? 'bg-muted' : ''}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleChangeStatus(candidate, option.value);
+                              }}
+                            >
+                              <div className={`w-3 h-3 rounded-full ${option.color}`} />
+                              {option.label}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
                   <Button
                     variant="ghost"

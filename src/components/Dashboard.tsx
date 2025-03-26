@@ -28,11 +28,11 @@ export default function Dashboard() {
     
     const query = searchQuery.toLowerCase().trim();
     return candidates.filter(candidate => 
-      candidate.name.toLowerCase().includes(query) ||
-      candidate.email.toLowerCase().includes(query) ||
-      candidate.phone.toLowerCase().includes(query) ||
-      (candidate.camsNumber && candidate.camsNumber.toLowerCase().includes(query)) ||
-      (candidate.eapNumber && candidate.eapNumber.toLowerCase().includes(query))
+      (candidate.name || '').toLowerCase().includes(query) ||
+      (candidate.email || '').toLowerCase().includes(query) ||
+      (candidate.phone || '').toLowerCase().includes(query) ||
+      (candidate.camsNumber ? candidate.camsNumber.toLowerCase().includes(query) : false) ||
+      (candidate.eapNumber ? candidate.eapNumber.toLowerCase().includes(query) : false)
     );
   }, [candidates, searchQuery]);
 
