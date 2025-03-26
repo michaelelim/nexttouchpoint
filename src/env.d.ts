@@ -14,7 +14,15 @@ declare namespace React {
     target: T;
   }
   
-  interface ReactNode {}
+  // ReactNode should accept the same types as the one in @types/react
+  type ReactNode = 
+    | string
+    | number
+    | boolean
+    | ReactElement
+    | Array<ReactNode>
+    | null
+    | undefined;
   
   interface FC<P = {}> {
     (props: P): ReactNode;
@@ -61,13 +69,13 @@ declare module 'react' {
 
 // Add next-themes type declarations
 declare module 'next-themes' {
-  import { ReactNode } from 'react';
+  import * as React from 'react';
   
   export interface ThemeProviderProps {
     attribute?: string;
     defaultTheme?: string;
     enableSystem?: boolean;
-    children?: ReactNode;
+    children?: React.ReactNode;
     storageKey?: string;
     forcedTheme?: string;
     disableTransitionOnChange?: boolean;
