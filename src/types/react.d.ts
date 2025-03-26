@@ -1,4 +1,11 @@
+// Custom React type augmentation to resolve type conflicts
+// This file should be included in tsconfig.json
+
 import 'react';
+
+// This empty declaration allows us to use the existing React types without conflicts
+// It prevents our custom declarations from overriding the official ones
+declare module 'react' {}
 
 declare module 'react' {
   export interface ReactElement<P = any, T extends string | JSXElementConstructor<any> = string | JSXElementConstructor<any>> {

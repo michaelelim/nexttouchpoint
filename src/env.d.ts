@@ -1,71 +1,4 @@
-// This file contains type declarations for external modules without their own type definitions
-
-/// <reference types="react" />
-/// <reference types="react-dom" />
-
-// Define React namespace explicitly
-declare namespace React {
-  interface FormEvent<T = Element> {
-    preventDefault(): void;
-    target: T;
-  }
-  
-  interface ChangeEvent<T = Element> {
-    target: T;
-  }
-  
-  // ReactNode should accept the same types as the one in @types/react
-  type ReactNode = 
-    | string
-    | number
-    | boolean
-    | ReactElement
-    | Array<ReactNode>
-    | null
-    | undefined;
-  
-  interface FC<P = {}> {
-    (props: P): ReactNode;
-  }
-  
-  type ElementType = any;
-  type ElementRef<T> = any;
-  type ComponentPropsWithoutRef<T> = any;
-  type JSXElementConstructor<P> = any;
-  type ReactElement<P = any, T extends string | JSXElementConstructor<any> = string | JSXElementConstructor<any>> = any;
-}
-
-// Declare JSX namespace to fix JSX element errors
-declare namespace JSX {
-  interface IntrinsicElements {
-    [elemName: string]: any;
-  }
-  interface Element extends React.ReactElement {}
-}
-
-// Declare modules that don't have TypeScript declarations
-declare module 'react' {
-  export import React = React;
-  
-  // React Hooks
-  export function useState<T>(initialState: T | (() => T)): [T, (newState: T | ((prevState: T) => T)) => void];
-  export function useEffect(effect: () => void | (() => void), deps?: readonly any[]): void;
-  export function useCallback<T extends (...args: any[]) => any>(callback: T, deps: readonly any[]): T;
-  export function useMemo<T>(factory: () => T, deps: readonly any[]): T;
-  export function useRef<T = undefined>(initialValue?: T): { current: T };
-  
-  export const Fragment: unique symbol;
-  export interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {}
-  export interface DOMAttributes<T> {}
-  export interface AriaAttributes {}
-  
-  export interface HTMLInputElement extends HTMLElement {
-    value: string;
-  }
-  
-  export interface HTMLFormElement extends HTMLElement {}
-  export interface HTMLElement {}
-}
+// Type declarations for modules without their own type definitions
 
 // Add next-themes type declarations
 declare module 'next-themes' {
@@ -139,11 +72,6 @@ declare module 'sonner' {
 declare module '*.module.css' {
   const classes: { [key: string]: string };
   export default classes;
-}
-
-// Fix event type errors
-interface EventTarget {
-  value: any;
 }
 
 // Fix any other missing module declarations

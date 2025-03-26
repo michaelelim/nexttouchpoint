@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import * as React from 'react'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'sonner'
@@ -11,11 +12,11 @@ export const metadata: Metadata = {
   description: 'Candidate follow-up management system',
 }
 
-export default function RootLayout({
-  children,
-}: {
+type RootLayoutProps = {
   children: React.ReactNode
-}) {
+}
+
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
