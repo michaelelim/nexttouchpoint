@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { format, eachDayOfInterval, differenceInDays, parseISO } from 'date-fns'
+import { useState, useEffect, useRef } from 'react'
+import { format, eachDayOfInterval, differenceInDays, parseISO, isToday, isPast } from 'date-fns'
 import { Candidate } from '@/types/candidate'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
   Copy, Mail, Phone, MapPin, Calendar, GraduationCap, Hash, 
-  ClipboardList, History, Circle, ArrowUpDown, SortAsc, SortDesc 
+  ClipboardList, History, Circle, ArrowUpDown, SortAsc, SortDesc,
+  Columns, CalendarIcon, PencilIcon, CheckIcon, XIcon
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { CandidateBarGraph } from './CandidateBarGraph'
@@ -21,8 +22,11 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
 
 type SortOption = 'name_asc' | 'name_desc' | 'last_contact_asc' | 'last_contact_desc';
+type ColumnLayout = '1' | '2' | '3';
 
 interface PivotTableProps {
   data: Candidate[]
@@ -40,6 +44,9 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
     selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null
   )
   const [sortOption, setSortOption] = useState<SortOption>('name_asc')
+  const [columnLayout, setColumnLayout] = useState<ColumnLayout>('3')
+  const [editingNextContactId, setEditingNextContactId] = useState<string | null>(null)
+  const [tempNextContactDate, setTempNextContactDate] = useState<Date | null>(null)
   
   // Update internal state when prop changes
   useEffect(() => {
@@ -172,6 +179,38 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
     }
   }
 
+  const handleStartEditingNextContact = (candidateId: string, currentDate: Date | null) => {
+    setEditingNextContactId(candidateId);
+    setTempNextContactDate(currentDate);
+  };
+
+  const handleCancelEditingNextContact = () => {
+    setEditingNextContactId(null);
+    setTempNextContactDate(null);
+  };
+
+  const handleSaveNextContactDate = (candidate: Candidate) => {
+    // Update the candidate with the new next contact date
+    const now = new Date();
+    const isCurrentOrPast = tempNextContactDate 
+      ? (isToday(tempNextContactDate) || isPast(tempNextContactDate)) 
+      : false;
+    
+    const updatedCandidate = {
+      ...candidate,
+      nextContact: tempNextContactDate,
+      lastTouchDate: now,
+      status: isCurrentOrPast ? 'Pending' : 'Contacted'
+    };
+    
+    // Update the candidate without triggering the edit dialog
+    onEditCandidate(updatedCandidate, false);
+    
+    // Reset the editing state
+    setEditingNextContactId(null);
+    setTempNextContactDate(null);
+  };
+
   const statusOptions = [
     { label: 'Active Candidate', value: 'Active Candidate', color: 'text-green-500', bgColor: 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' },
     { label: 'Difficult to Reach', value: 'Difficult to Reach', color: 'text-yellow-500', bgColor: 'bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-800' },
@@ -228,6 +267,17 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
     return getCategoryFromStatus(candidate.status);
   };
 
+  // Get grid classes based on column layout
+  const getGridClasses = () => {
+    switch (columnLayout) {
+      case '1': return 'grid-cols-1';
+      case '2': return 'grid-cols-1 md:grid-cols-2';
+      case '3': 
+      default:
+        return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+    }
+  };
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Candidate Follow-Up Dashboard</h1>
@@ -244,48 +294,81 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
             : 'Showing All Candidates'}
         </h2>
         
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-1">
-              <ArrowUpDown className="h-4 w-4" />
-              <span>Sort</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuRadioGroup value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
-              <DropdownMenuRadioItem value="name_asc">
-                <div className="flex items-center gap-2">
-                  <SortAsc className="h-4 w-4" />
-                  <span>Name (A-Z)</span>
-                </div>
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="name_desc">
-                <div className="flex items-center gap-2">
-                  <SortDesc className="h-4 w-4" />
-                  <span>Name (Z-A)</span>
-                </div>
-              </DropdownMenuRadioItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuRadioItem value="last_contact_asc">
-                <div className="flex items-center gap-2">
-                  <SortAsc className="h-4 w-4" />
-                  <span>Last Contact (Oldest first)</span>
-                </div>
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="last_contact_desc">
-                <div className="flex items-center gap-2">
-                  <SortDesc className="h-4 w-4" />
-                  <span>Last Contact (Newest first)</span>
-                </div>
-              </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-2">
+          {/* Column Layout Selector */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1">
+                <Columns className="h-4 w-4" />
+                <span>{columnLayout}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuRadioGroup value={columnLayout} onValueChange={(value) => setColumnLayout(value as ColumnLayout)}>
+                <DropdownMenuRadioItem value="1">
+                  <div className="flex items-center gap-2">
+                    <span>1 Column</span>
+                  </div>
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="2">
+                  <div className="flex items-center gap-2">
+                    <span>2 Columns</span>
+                  </div>
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="3">
+                  <div className="flex items-center gap-2">
+                    <span>3 Columns</span>
+                  </div>
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          {/* Sort Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1">
+                <ArrowUpDown className="h-4 w-4" />
+                <span>Sort</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuRadioGroup value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
+                <DropdownMenuRadioItem value="name_asc">
+                  <div className="flex items-center gap-2">
+                    <SortAsc className="h-4 w-4" />
+                    <span>Name (A-Z)</span>
+                  </div>
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="name_desc">
+                  <div className="flex items-center gap-2">
+                    <SortDesc className="h-4 w-4" />
+                    <span>Name (Z-A)</span>
+                  </div>
+                </DropdownMenuRadioItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioItem value="last_contact_asc">
+                  <div className="flex items-center gap-2">
+                    <SortAsc className="h-4 w-4" />
+                    <span>Last Contact (Oldest first)</span>
+                  </div>
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="last_contact_desc">
+                  <div className="flex items-center gap-2">
+                    <SortDesc className="h-4 w-4" />
+                    <span>Last Contact (Newest first)</span>
+                  </div>
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className={`grid ${getGridClasses()} gap-4`}>
         {filteredCandidates.map((candidate) => {
           const currentCategory = getCandidateCategory(candidate);
+          const isEditingNextContact = editingNextContactId === candidate.id;
           
           return (
             <Card 
@@ -357,21 +440,43 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="space-y-1">
                       <div className="flex items-center gap-1 text-muted-foreground">
-                        <Mail className="h-3 w-3" />
+                        <Mail className="h-3 w-3 flex-shrink-0" />
                         <span className="flex-1 truncate">{candidate.email}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-5 w-5 p-0 ml-1"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            copyToClipboard(candidate.email)
+                          }}
+                        >
+                          <Copy className="h-2.5 w-2.5" />
+                        </Button>
                       </div>
                       <div className="flex items-center gap-1 text-muted-foreground">
-                        <Phone className="h-3 w-3" />
+                        <Phone className="h-3 w-3 flex-shrink-0" />
                         <span className="flex-1 truncate">{candidate.phone}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-5 w-5 p-0 ml-1"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            copyToClipboard(candidate.phone)
+                          }}
+                        >
+                          <Copy className="h-2.5 w-2.5" />
+                        </Button>
                       </div>
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center gap-1 text-muted-foreground">
-                        <Hash className="h-3 w-3" />
+                        <Hash className="h-3 w-3 flex-shrink-0" />
                         <span className="truncate">CAMS: {candidate.camsNumber || 'N/A'}</span>
                       </div>
                       <div className="flex items-center gap-1 text-muted-foreground">
-                        <Hash className="h-3 w-3" />
+                        <Hash className="h-3 w-3 flex-shrink-0" />
                         <span className="truncate">EAP: {candidate.eapNumber || 'N/A'}</span>
                       </div>
                     </div>
@@ -383,13 +488,84 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                       <GraduationCap className="h-3 w-3" />
                       <span>{candidate.stream}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      <span>
-                        {candidate.nextContact
-                          ? format(new Date(candidate.nextContact), 'MMM d')
-                          : 'No date'}
-                      </span>
+                    
+                    {/* Next Contact Date - Editable */}
+                    <div className="flex items-center gap-1 text-muted-foreground relative">
+                      <Calendar className="h-3 w-3 flex-shrink-0" />
+                      
+                      {isEditingNextContact ? (
+                        // Editing mode
+                        <div 
+                          className="flex-1 flex items-center"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-6 w-full justify-start px-2 py-1 text-xs font-normal"
+                              >
+                                {tempNextContactDate 
+                                  ? format(tempNextContactDate, 'MMM d') 
+                                  : 'Select date'}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="end">
+                              <Calendar
+                                mode="single"
+                                selected={tempNextContactDate || undefined}
+                                onSelect={(date) => setTempNextContactDate(date || null)}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          
+                          <div className="flex ml-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() => handleSaveNextContactDate(candidate)}
+                            >
+                              <CheckIcon className="h-3 w-3 text-green-500" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={handleCancelEditingNextContact}
+                            >
+                              <XIcon className="h-3 w-3 text-red-500" />
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        // Display mode
+                        <>
+                          <span className="flex-1">
+                            {candidate.nextContact
+                              ? format(new Date(candidate.nextContact), 'MMM d')
+                              : 'No date'}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-5 w-5 p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStartEditingNextContact(
+                                candidate.id, 
+                                candidate.nextContact 
+                                  ? new Date(candidate.nextContact) 
+                                  : null
+                              );
+                            }}
+                          >
+                            <PencilIcon className="h-2.5 w-2.5" />
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </div>
 
