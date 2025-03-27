@@ -5,7 +5,10 @@ import { format, eachDayOfInterval, differenceInDays, parseISO } from 'date-fns'
 import { Candidate } from '@/types/candidate'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Copy, Mail, Phone, MapPin, Calendar, GraduationCap, Hash, ClipboardList, History, Circle } from 'lucide-react'
+import { 
+  Copy, Mail, Phone, MapPin, Calendar, GraduationCap, Hash, 
+  ClipboardList, History, Circle, ArrowUpDown, SortAsc, SortDesc 
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { CandidateBarGraph } from './CandidateBarGraph'
 import { Card, CardContent } from './ui/card'
@@ -14,7 +17,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
+
+type SortOption = 'name_asc' | 'name_desc' | 'last_contact_asc' | 'last_contact_desc';
 
 interface PivotTableProps {
   data: Candidate[]
@@ -31,6 +39,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
   const [selectedDateState, setSelectedDateState] = useState<string | null>(
     selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null
   )
+  const [sortOption, setSortOption] = useState<SortOption>('name_asc')
   
   // Update internal state when prop changes
   useEffect(() => {
@@ -106,13 +115,33 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
   }
 
   // Filter candidates based on selected date
-  const filteredCandidates = selectedDateState
+  let filteredCandidates = selectedDateState
     ? data.filter((candidate) => {
         if (!candidate.nextContact) return false;
         const candidateDate = new Date(candidate.nextContact).toISOString().split('T')[0];
         return candidateDate === selectedDateState;
       })
     : data;
+    
+  // Sort candidates based on selected sort option
+  filteredCandidates = [...filteredCandidates].sort((a, b) => {
+    if (sortOption === 'name_asc') {
+      return a.name.localeCompare(b.name);
+    } else if (sortOption === 'name_desc') {
+      return b.name.localeCompare(a.name);
+    } else if (sortOption === 'last_contact_asc') {
+      // Sort by last contact date, oldest first (nulls at the top)
+      if (!a.lastTouchDate) return -1;
+      if (!b.lastTouchDate) return 1;
+      return new Date(a.lastTouchDate).getTime() - new Date(b.lastTouchDate).getTime();
+    } else if (sortOption === 'last_contact_desc') {
+      // Sort by last contact date, newest first (nulls at the bottom)
+      if (!a.lastTouchDate) return 1;
+      if (!b.lastTouchDate) return -1;
+      return new Date(b.lastTouchDate).getTime() - new Date(a.lastTouchDate).getTime();
+    }
+    return 0;
+  });
 
   // Helper function to format date consistently
   const formatDateWithAdjustment = (dateString: string) => {
@@ -208,11 +237,51 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
         selectedDate={selectedDate}
       />
       
-      <h2 className="text-xl font-semibold mt-8 mb-4">
-        {selectedDateState 
-          ? `Candidates to Contact on ${formatDateWithAdjustment(selectedDateState)}`
-          : 'Showing All Candidates'}
-      </h2>
+      <div className="flex justify-between items-center mt-8 mb-4">
+        <h2 className="text-xl font-semibold">
+          {selectedDateState 
+            ? `Candidates to Contact on ${formatDateWithAdjustment(selectedDateState)}`
+            : 'Showing All Candidates'}
+        </h2>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-1">
+              <ArrowUpDown className="h-4 w-4" />
+              <span>Sort</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuRadioGroup value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
+              <DropdownMenuRadioItem value="name_asc">
+                <div className="flex items-center gap-2">
+                  <SortAsc className="h-4 w-4" />
+                  <span>Name (A-Z)</span>
+                </div>
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="name_desc">
+                <div className="flex items-center gap-2">
+                  <SortDesc className="h-4 w-4" />
+                  <span>Name (Z-A)</span>
+                </div>
+              </DropdownMenuRadioItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuRadioItem value="last_contact_asc">
+                <div className="flex items-center gap-2">
+                  <SortAsc className="h-4 w-4" />
+                  <span>Last Contact (Oldest first)</span>
+                </div>
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="last_contact_desc">
+                <div className="flex items-center gap-2">
+                  <SortDesc className="h-4 w-4" />
+                  <span>Last Contact (Newest first)</span>
+                </div>
+              </DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredCandidates.map((candidate) => {
@@ -224,20 +293,20 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
               className={`cursor-pointer hover:shadow-lg transition-shadow border ${getCardBackgroundColor(currentCategory)}`}
               onClick={() => handleEditCandidate(candidate)}
             >
-              <CardContent className="p-6">
-                <div className="flex flex-col space-y-4">
+              <CardContent className="p-4">
+                <div className="flex flex-col space-y-2">
                   {/* Header with name and status */}
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold truncate">{candidate.name}</h3>
-                      <div className="flex flex-wrap gap-2 items-center mt-1">
+                      <h3 className="text-base font-semibold truncate">{candidate.name}</h3>
+                      <div className="flex flex-wrap gap-1 items-center mt-1">
                         {/* Status Badge - Shows the process status */}
                         <Badge className={getStatusColor(candidate.status)}>
                           {candidate.status}
                         </Badge>
                         
                         {/* Category Badge - Shows the contact category */}
-                        <div className={`inline-flex items-center rounded-md border-2 px-2 py-1 text-xs font-medium ${
+                        <div className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-medium ${
                           currentCategory === 'Active Candidate' ? 'border-green-500 text-green-700 dark:text-green-400' : 
                           currentCategory === 'Difficult to Reach' ? 'border-yellow-500 text-yellow-700 dark:text-yellow-400' :
                           currentCategory === 'Unable to Contact' ? 'border-red-500 text-red-700 dark:text-red-400' :
@@ -249,8 +318,8 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                         
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                              <Circle className="h-4 w-4" />
+                            <Button variant="ghost" size="sm" className="h-5 w-5 p-0">
+                              <Circle className="h-3 w-3" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
@@ -274,83 +343,48 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0"
+                      className="h-6 w-6 p-0"
                       onClick={(e) => {
                         e.stopPropagation()
                         copyToClipboard(candidate.name)
                       }}
                     >
-                      <Copy className="h-4 w-4" />
+                      <Copy className="h-3 w-3" />
                     </Button>
                   </div>
 
-                  {/* Contact Information */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Mail className="h-4 w-4" />
-                      <span className="flex-1 truncate">{candidate.email}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          copyToClipboard(candidate.email)
-                        }}
-                      >
-                        <Copy className="h-3 w-3" />
-                      </Button>
+                  {/* Contact Information and ID (combined row) */}
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Mail className="h-3 w-3" />
+                        <span className="flex-1 truncate">{candidate.email}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Phone className="h-3 w-3" />
+                        <span className="flex-1 truncate">{candidate.phone}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Phone className="h-4 w-4" />
-                      <span className="flex-1">{candidate.phone}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          copyToClipboard(candidate.phone)
-                        }}
-                      >
-                        <Copy className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* ID Numbers */}
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Hash className="h-4 w-4" />
-                      <span>CAMS: {candidate.camsNumber || 'N/A'}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Hash className="h-4 w-4" />
-                      <span className="flex-1">EAP: {candidate.eapNumber || 'N/A'}</span>
-                      {candidate.eapNumber && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            copyToClipboard(candidate.eapNumber!)
-                          }}
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
-                      )}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Hash className="h-3 w-3" />
+                        <span className="truncate">CAMS: {candidate.camsNumber || 'N/A'}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Hash className="h-3 w-3" />
+                        <span className="truncate">EAP: {candidate.eapNumber || 'N/A'}</span>
+                      </div>
                     </div>
                   </div>
 
                   {/* Stream and Next Contact */}
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <GraduationCap className="h-4 w-4" />
+                  <div className="grid grid-cols-2 gap-2 text-xs border-t pt-1">
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <GraduationCap className="h-3 w-3" />
                       <span>{candidate.stream}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
                       <span>
                         {candidate.nextContact
                           ? format(new Date(candidate.nextContact), 'MMM d')
@@ -359,40 +393,21 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                     </div>
                   </div>
 
-                  {/* Assessment Section */}
-                  {(candidate.needsAssessment || candidate.assessmentNotes) && (
-                    <div className="space-y-2 border-t pt-2">
-                      <div className="flex items-start gap-2">
-                        <ClipboardList className="h-4 w-4 mt-1 text-muted-foreground" />
-                        <div className="flex-1">
-                          <div className="font-medium text-sm">Assessment</div>
-                          {candidate.needsAssessment && (
-                            <Badge variant="secondary" className="mt-1">Needs Assessment</Badge>
-                          )}
-                          {candidate.assessmentNotes && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {candidate.assessmentNotes}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
                   {/* Last Touch Date */}
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground border-t pt-2">
-                    <History className="h-4 w-4" />
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <History className="h-3 w-3" />
                     <span>Last Contact: {candidate.lastTouchDate 
                       ? format(new Date(candidate.lastTouchDate), 'MMM d, yyyy')
                       : 'Never'}</span>
                   </div>
 
-                  {/* Footer Information */}
-                  <div className="flex gap-2 text-sm">
-                    {candidate.isEmployed && (
-                      <Badge variant="secondary">Employed</Badge>
-                    )}
-                  </div>
+                  {/* Assessment Notes - only if available */}
+                  {candidate.assessmentNotes && (
+                    <div className="text-xs text-muted-foreground border-t pt-1 line-clamp-1">
+                      <span className="font-medium">Notes: </span>
+                      {candidate.assessmentNotes}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { format, parseISO, startOfDay, differenceInDays, addDays, isBefore, isToday } from 'date-fns'
+import { format, parseISO, startOfDay, differenceInDays, addDays, isToday } from 'date-fns'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Candidate } from '@/types/candidate'
@@ -17,7 +17,6 @@ interface CandidateBarGraphProps {
 export function CandidateBarGraph({ candidates, onBarClick, selectedDate }: CandidateBarGraphProps) {
   const [dayRange, setDayRange] = useState<number>(30)
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null)
-  const [labelVisibility, setLabelVisibility] = useState(true)
   const chartContainerRef = useRef<HTMLDivElement>(null)
   
   // Set today as the default selected date on initial render if nothing is selected
@@ -36,28 +35,6 @@ export function CandidateBarGraph({ candidates, onBarClick, selectedDate }: Cand
       setSelectedDateKey(null);
     }
   }, [selectedDate]);
-
-  // Check for label overlap on resize
-  useEffect(() => {
-    const checkLabelOverlap = () => {
-      if (chartContainerRef.current) {
-        const containerWidth = chartContainerRef.current.offsetWidth
-        // Estimate if there will be overlap based on container width and number of days
-        const estimatedLabelWidth = 60 // Approximate width of each label in pixels
-        const totalLabelsWidth = (dayRange + 1) * estimatedLabelWidth // +1 for past due bar
-        
-        setLabelVisibility(containerWidth > totalLabelsWidth)
-      }
-    }
-    
-    // Check initially and on resize
-    checkLabelOverlap()
-    window.addEventListener('resize', checkLabelOverlap)
-    
-    return () => {
-      window.removeEventListener('resize', checkLabelOverlap)
-    }
-  }, [dayRange])
 
   // Process candidate counts by next contact date
   const candidatesByDate = candidates.reduce((acc, candidate) => {
@@ -83,13 +60,8 @@ export function CandidateBarGraph({ candidates, onBarClick, selectedDate }: Cand
   const today = startOfDay(new Date())
   const endDate = addDays(today, dayRange - 1)
   
-  // Get past due candidates (before today)
-  const pastDueCandidates = candidates.filter(candidate => 
-    candidate.nextContact && isBefore(new Date(candidate.nextContact), today) && !isToday(new Date(candidate.nextContact))
-  )
-  
-  // Create data for future dates
-  const futureData = Object.entries(candidatesByDate)
+  // Create data for dates
+  const chartData = Object.entries(candidatesByDate)
     .map(([dateStr, { count, candidates }]) => {
       const date = parseISO(dateStr)
       const daysFromNow = differenceInDays(date, today)
@@ -122,8 +94,7 @@ export function CandidateBarGraph({ candidates, onBarClick, selectedDate }: Cand
         fill,
         stroke,
         strokeWidth,
-        isSelected,
-        isPastDue: false
+        isSelected
       }
     })
     .filter(item => 
@@ -131,33 +102,13 @@ export function CandidateBarGraph({ candidates, onBarClick, selectedDate }: Cand
       (isToday(item.date) || item.date > today) && item.date <= endDate
     )
     .sort((a, b) => a.date.getTime() - b.date.getTime())
-  
-  // Create past due entry
-  const pastDueEntry = {
-    dateStr: 'past-due',
-    date: addDays(today, -1), // Just for display purposes
-    count: pastDueCandidates.length,
-    candidates: pastDueCandidates,
-    fill: 'rgb(220, 50, 50)', // Red color for past due
-    stroke: pastDueCandidates.length > 0 && selectedDateKey === 'past-due' ? '#000' : 'none',
-    strokeWidth: pastDueCandidates.length > 0 && selectedDateKey === 'past-due' ? 2 : 0,
-    isSelected: selectedDateKey === 'past-due',
-    isPastDue: true
-  }
-  
-  // Combine past due with future data
-  const chartData = [pastDueEntry, ...futureData]
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload
       return (
         <div className="bg-background border rounded p-2 shadow-lg">
-          <p className="font-semibold">
-            {data.isPastDue 
-              ? 'Past Due' 
-              : format(data.date, 'MMM d, yyyy')}
-          </p>
+          <p className="font-semibold">{format(data.date, 'MMM d, yyyy')}</p>
           <p>Candidates: {data.count}</p>
           <div className="mt-1 text-sm max-h-[150px] overflow-y-auto">
             {data.candidates.map((candidate: Candidate) => (
@@ -169,24 +120,6 @@ export function CandidateBarGraph({ candidates, onBarClick, selectedDate }: Cand
     }
     return null
   }
-
-  const handleBarClick = (data: any) => {
-    if (!onBarClick) return;
-    
-    if (data.isPastDue) {
-      // Set a special key for past due
-      setSelectedDateKey('past-due');
-      // We don't have a specific date, so we'll pass the first past due candidate's date
-      // or today if there are no past due candidates
-      const firstPastDue = pastDueCandidates[0];
-      const dateToPass = firstPastDue?.nextContact 
-        ? new Date(firstPastDue.nextContact)
-        : addDays(today, -1);
-      onBarClick(dateToPass);
-    } else {
-      onBarClick(data.date);
-    }
-  };
 
   return (
     <Card>
@@ -220,21 +153,26 @@ export function CandidateBarGraph({ candidates, onBarClick, selectedDate }: Cand
       <CardContent>
         <div className="h-[200px]" ref={chartContainerRef}>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData}>
+            <BarChart 
+              data={chartData}
+              margin={{ left: 0, right: 0, bottom: 10 }}
+            >
               <XAxis
                 dataKey="date"
-                tickFormatter={(date, index) => {
-                  if (index === 0) return "Past Due";
-                  return labelVisibility ? format(date, 'MMM d') : "";
-                }}
+                tickFormatter={(date) => format(date, 'MMM d')}
                 interval={0}
-                tick={{ fontSize: labelVisibility ? 12 : 0 }}
+                tick={{ fontSize: 10, angle: -45, textAnchor: 'end' }}
+                height={50}
               />
               <YAxis allowDecimals={false} />
               <Tooltip content={<CustomTooltip />} />
               <Bar
                 dataKey="count"
-                onClick={(data) => handleBarClick(data.payload)}
+                onClick={(data) => {
+                  if (onBarClick && data.payload.date) {
+                    onBarClick(data.payload.date)
+                  }
+                }}
                 className="cursor-pointer"
               >
                 {chartData.map((entry, index) => (
