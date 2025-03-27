@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
-import { format } from 'date-fns'
+import { useState, useCallback, useMemo, useEffect } from 'react'
+import { format, startOfDay } from 'date-fns'
 import { Candidate } from '@/types/candidate'
 import { readExcelFile, exportToExcel } from '@/lib/excel-service'
 import PivotTable from './PivotTable'
@@ -14,14 +14,17 @@ import CandidateEditDialog from './CandidateEditDialog'
 export default function Dashboard() {
   const [dateRange, setDateRange] = useState<{ start: Date; end: Date }>({
     start: new Date(),
-    end: new Date(new Date().setDate(new Date().getDate() + 7)),
+    end: new Date(new Date().setDate(new Date().getDate() + 30)),
   })
   
   const [candidates, setCandidates] = useState<Candidate[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [selectedDate, setSelectedDate] = useState<Date | null>(() => {
+    // Default to today's date
+    return startOfDay(new Date())
+  })
 
   const filteredCandidates = useMemo(() => {
     if (!searchQuery.trim()) return candidates;
