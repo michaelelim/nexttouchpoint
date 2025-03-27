@@ -6,7 +6,7 @@ import { Candidate } from '@/types/candidate'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
-  Copy, Mail, Phone, MapPin, Calendar, GraduationCap, Hash, 
+  Copy, Mail, Phone, MapPin, Calendar as CalendarDateIcon, GraduationCap, Hash, 
   ClipboardList, History, Circle, ArrowUpDown, SortAsc, SortDesc,
   Columns, CalendarIcon, PencilIcon, CheckIcon, XIcon
 } from 'lucide-react'
@@ -491,7 +491,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                     
                     {/* Next Contact Date - Editable */}
                     <div className="flex items-center gap-1 text-muted-foreground relative">
-                      <Calendar className="h-3 w-3 flex-shrink-0" />
+                      <CalendarDateIcon className="h-3 w-3 flex-shrink-0" />
                       
                       {isEditingNextContact ? (
                         // Editing mode
