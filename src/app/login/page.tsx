@@ -47,7 +47,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="mlim@agilec.ca"
+                placeholder="Enter your email"
                 value={email}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                 required

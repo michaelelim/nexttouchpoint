@@ -13,6 +13,7 @@ export interface Candidate {
   lastTouchDate: Date | null
   nextContact: Date | null
   status: string
+  category?: string
   notes: string
   // Pay stub related fields (only applicable if employed)
   isEmployed: boolean

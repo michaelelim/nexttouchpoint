@@ -151,11 +151,15 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
     { label: 'Active Hold', value: 'Active Hold', color: 'text-gray-500', bgColor: 'bg-gray-50 dark:bg-gray-950 border-gray-200 dark:border-gray-800' },
   ];
 
-  const handleChangeStatus = (candidate: Candidate, newStatus: string) => {
+  const handleChangeStatus = (candidate: Candidate, newCategory: string) => {
+    // Create a new candidate object with only the category changed
+    // We'll store the category in a new field so it doesn't affect the status
     const updatedCandidate = {
       ...candidate,
-      status: newStatus
+      // Don't modify the status field, add a new field for the category
+      category: newCategory 
     };
+    
     // Update the candidate without triggering the edit dialog
     onEditCandidate(updatedCandidate, false);
   };
@@ -186,6 +190,12 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
 
   // Get the current category of a candidate
   const getCandidateCategory = (candidate: Candidate): string => {
+    // If candidate has a category field, use it
+    if (candidate.category) {
+      return candidate.category;
+    }
+    
+    // Otherwise, infer from status (for backward compatibility)
     return getCategoryFromStatus(candidate.status);
   };
 
@@ -195,6 +205,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
       <CandidateBarGraph 
         candidates={data} 
         onBarClick={handleBarClick}
+        selectedDate={selectedDate}
       />
       
       <h2 className="text-xl font-semibold mt-8 mb-4">
@@ -220,12 +231,12 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold truncate">{candidate.name}</h3>
                       <div className="flex flex-wrap gap-2 items-center mt-1">
-                        {/* Status Badge */}
+                        {/* Status Badge - Shows the process status */}
                         <Badge className={getStatusColor(candidate.status)}>
                           {candidate.status}
                         </Badge>
                         
-                        {/* Category Badge */}
+                        {/* Category Badge - Shows the contact category */}
                         <div className={`inline-flex items-center rounded-md border-2 px-2 py-1 text-xs font-medium ${
                           currentCategory === 'Active Candidate' ? 'border-green-500 text-green-700 dark:text-green-400' : 
                           currentCategory === 'Difficult to Reach' ? 'border-yellow-500 text-yellow-700 dark:text-yellow-400' :

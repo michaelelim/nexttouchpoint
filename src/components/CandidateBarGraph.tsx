@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { format, parseISO, startOfDay, differenceInDays, addDays } from 'date-fns'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
@@ -11,10 +11,21 @@ import { RadioGroup, RadioGroupItem } from './ui/radio-group'
 interface CandidateBarGraphProps {
   candidates: Candidate[]
   onBarClick?: (date: Date) => void
+  selectedDate?: Date | null
 }
 
-export function CandidateBarGraph({ candidates, onBarClick }: CandidateBarGraphProps) {
+export function CandidateBarGraph({ candidates, onBarClick, selectedDate }: CandidateBarGraphProps) {
   const [dayRange, setDayRange] = useState<number>(30)
+  const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null)
+  
+  // Update selectedDateKey when selectedDate prop changes
+  useEffect(() => {
+    if (selectedDate) {
+      setSelectedDateKey(selectedDate.toISOString().split('T')[0]);
+    } else {
+      setSelectedDateKey(null);
+    }
+  }, [selectedDate]);
 
   // Process candidate counts by next contact date
   const candidatesByDate = candidates.reduce((acc, candidate) => {
@@ -49,13 +60,31 @@ export function CandidateBarGraph({ candidates, onBarClick }: CandidateBarGraphP
       const colorValue = Math.max(0, Math.min(1, daysFromNow / maxDays))
       const red = Math.round(255 * (1 - colorValue))
       const green = Math.round(255 * colorValue)
-      const fill = `rgb(${red}, ${green}, 0)`
-
+      
+      // Base fill color
+      const baseFill = `rgb(${red}, ${green}, 0)`
+      
+      // Check if this is the selected date
+      const isSelected = dateStr === selectedDateKey
+      
+      // Use a highlighted fill for selected bars
+      const fill = isSelected 
+        ? `rgb(${Math.min(red + 40, 255)}, ${Math.min(green + 40, 255)}, 100)` 
+        : baseFill
+      
+      // Add a stroke to selected bars
+      const stroke = isSelected ? '#000' : 'none'
+      const strokeWidth = isSelected ? 2 : 0
+      
       return {
+        dateStr,
         date,
         count,
         candidates,
         fill,
+        stroke,
+        strokeWidth,
+        isSelected
       }
     })
     .filter(item => item.date >= today && item.date <= endDate)
@@ -126,7 +155,13 @@ export function CandidateBarGraph({ candidates, onBarClick }: CandidateBarGraphP
                 className="cursor-pointer"
               >
                 {chartData.map((entry, index) => (
-                  <rect key={`bar-${index}`} fill={entry.fill} />
+                  <rect 
+                    key={`bar-${index}`} 
+                    fill={entry.fill}
+                    stroke={entry.stroke}
+                    strokeWidth={entry.strokeWidth} 
+                    className={entry.isSelected ? 'filter drop-shadow-md' : ''}
+                  />
                 ))}
               </Bar>
             </BarChart>
