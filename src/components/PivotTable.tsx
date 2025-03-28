@@ -6,13 +6,14 @@ import { Candidate } from '@/types/candidate'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
-  Copy, Mail, Phone, MapPin, Calendar as CalendarDateIcon, GraduationCap, Hash, 
-  ClipboardList, History, Circle, ArrowUpDown, SortAsc, SortDesc,
-  Columns, CalendarIcon, PencilIcon, CheckIcon, XIcon
+  Copy, Mail, Phone, MapPin, Calendar, GraduationCap, Hash, 
+  ClipboardList, History, Circle, ChevronUp, ChevronDown,
+  LayoutGrid, Calendar as CalendarIcon, Pencil, Check, X
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { CandidateBarGraph } from './CandidateBarGraph'
 import { Card, CardContent } from './ui/card'
+import EmailTemplateDropdown from './EmailTemplateDropdown'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,7 +24,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
+import { Calendar as UICalendar } from "@/components/ui/calendar"
 
 type SortOption = 'name_asc' | 'name_desc' | 'last_contact_asc' | 'last_contact_desc';
 type ColumnLayout = '1' | '2' | '3';
@@ -193,20 +194,17 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
     // Update the candidate with the new next contact date
     const now = new Date();
     const isCurrentOrPast = tempNextContactDate 
-      ? (isToday(tempNextContactDate) || isPast(tempNextContactDate)) 
+      ? (tempNextContactDate <= now) 
       : false;
     
     const updatedCandidate = {
       ...candidate,
       nextContact: tempNextContactDate,
       lastTouchDate: now,
-      status: isCurrentOrPast ? 'Pending' : 'Contacted'
+      status: isCurrentOrPast ? 'Pending' : 'Contacted',
     };
     
-    // Update the candidate without triggering the edit dialog
-    onEditCandidate(updatedCandidate, false);
-    
-    // Reset the editing state
+    onEditCandidate(updatedCandidate);
     setEditingNextContactId(null);
     setTempNextContactDate(null);
   };
@@ -299,7 +297,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="gap-1">
-                <Columns className="h-4 w-4" />
+                <LayoutGrid className="h-4 w-4" />
                 <span>{columnLayout}</span>
               </Button>
             </DropdownMenuTrigger>
@@ -328,7 +326,8 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="gap-1">
-                <ArrowUpDown className="h-4 w-4" />
+                <ChevronUp className="h-4 w-4" />
+                <ChevronDown className="h-4 w-4" />
                 <span>Sort</span>
               </Button>
             </DropdownMenuTrigger>
@@ -336,26 +335,22 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
               <DropdownMenuRadioGroup value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
                 <DropdownMenuRadioItem value="name_asc">
                   <div className="flex items-center gap-2">
-                    <SortAsc className="h-4 w-4" />
                     <span>Name (A-Z)</span>
                   </div>
                 </DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="name_desc">
                   <div className="flex items-center gap-2">
-                    <SortDesc className="h-4 w-4" />
                     <span>Name (Z-A)</span>
                   </div>
                 </DropdownMenuRadioItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuRadioItem value="last_contact_asc">
                   <div className="flex items-center gap-2">
-                    <SortAsc className="h-4 w-4" />
                     <span>Last Contact (Oldest first)</span>
                   </div>
                 </DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="last_contact_desc">
                   <div className="flex items-center gap-2">
-                    <SortDesc className="h-4 w-4" />
                     <span>Last Contact (Newest first)</span>
                   </div>
                 </DropdownMenuRadioItem>
@@ -423,17 +418,20 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                         </DropdownMenu>
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        copyToClipboard(candidate.name)
-                      }}
-                    >
-                      <Copy className="h-3 w-3" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <EmailTemplateDropdown candidate={candidate} />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          copyToClipboard(candidate.name)
+                        }}
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
 
                   {/* Contact Information and ID (combined row) */}
@@ -491,7 +489,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                     
                     {/* Next Contact Date - Editable */}
                     <div className="flex items-center gap-1 text-muted-foreground relative">
-                      <CalendarDateIcon className="h-3 w-3 flex-shrink-0" />
+                      <CalendarIcon className="h-3 w-3 flex-shrink-0" />
                       
                       {isEditingNextContact ? (
                         // Editing mode
@@ -512,7 +510,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0" align="end">
-                              <Calendar
+                              <UICalendar
                                 mode="single"
                                 selected={tempNextContactDate || undefined}
                                 onSelect={(date) => setTempNextContactDate(date || null)}
@@ -528,7 +526,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                               className="h-6 w-6 p-0"
                               onClick={() => handleSaveNextContactDate(candidate)}
                             >
-                              <CheckIcon className="h-3 w-3 text-green-500" />
+                              <Check className="h-3 w-3 text-green-500" />
                             </Button>
                             <Button
                               variant="ghost"
@@ -536,7 +534,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                               className="h-6 w-6 p-0"
                               onClick={handleCancelEditingNextContact}
                             >
-                              <XIcon className="h-3 w-3 text-red-500" />
+                              <X className="h-3 w-3 text-red-500" />
                             </Button>
                           </div>
                         </div>
@@ -562,7 +560,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                               );
                             }}
                           >
-                            <PencilIcon className="h-2.5 w-2.5" />
+                            <Pencil className="h-2.5 w-2.5" />
                           </Button>
                         </>
                       )}
@@ -582,6 +580,14 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                     <div className="text-xs text-muted-foreground border-t pt-1 line-clamp-1">
                       <span className="font-medium">Notes: </span>
                       {candidate.assessmentNotes}
+                    </div>
+                  )}
+                  
+                  {/* Notes section - only if available */}
+                  {candidate.notes && (
+                    <div className="text-xs text-muted-foreground border-t mt-1 pt-1 line-clamp-2">
+                      <span className="font-medium">Notes: </span>
+                      {candidate.notes}
                     </div>
                   )}
                 </div>
