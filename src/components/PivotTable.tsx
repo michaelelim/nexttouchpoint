@@ -230,7 +230,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
       status: isCurrentOrPast ? 'Pending' : 'Contacted',
     };
     
-    onEditCandidate(updatedCandidate);
+    onEditCandidate(updatedCandidate, false);
     setEditingNextContactId(null);
     setTempNextContactDate(null);
   };

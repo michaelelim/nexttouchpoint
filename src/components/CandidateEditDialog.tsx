@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { format, isToday, isPast } from 'date-fns'
+import { format } from 'date-fns'
 import { Candidate } from '@/types/candidate'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -24,7 +24,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Switch } from '@/components/ui/switch'
-import { CalendarIcon, Copy } from 'lucide-react'
+import { Calendar as CalendarIcon, Copy } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface CandidateEditDialogProps {
@@ -61,7 +61,8 @@ export default function CandidateEditDialog({
   const handleNextContactChange = (date: Date | undefined) => {
     setEditedCandidate((prev) => {
       const now = new Date()
-      const isCurrentOrPast = date ? (isToday(date) || isPast(date)) : false
+      // Check if the date is today or in the past
+      const isCurrentOrPast = date ? (date <= now) : false
       
       return {
         ...prev,
@@ -148,37 +149,70 @@ export default function CandidateEditDialog({
           <div className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                value={editedCandidate.name}
-                onChange={(e) =>
-                  setEditedCandidate((prev) => ({ ...prev, name: e.target.value }))
-                }
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="name"
+                  value={editedCandidate.name}
+                  onChange={(e) =>
+                    setEditedCandidate((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  className="flex-1"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => copyToClipboard(editedCandidate.name)}
+                  className="h-10 w-10"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={editedCandidate.email}
-                onChange={(e) =>
-                  setEditedCandidate((prev) => ({ ...prev, email: e.target.value }))
-                }
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="email"
+                  type="email"
+                  value={editedCandidate.email}
+                  onChange={(e) =>
+                    setEditedCandidate((prev) => ({ ...prev, email: e.target.value }))
+                  }
+                  className="flex-1"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => copyToClipboard(editedCandidate.email)}
+                  className="h-10 w-10"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={editedCandidate.phone}
-                onChange={(e) =>
-                  setEditedCandidate((prev) => ({ ...prev, phone: e.target.value }))
-                }
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={editedCandidate.phone}
+                  onChange={(e) =>
+                    setEditedCandidate((prev) => ({ ...prev, phone: e.target.value }))
+                  }
+                  className="flex-1"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => copyToClipboard(editedCandidate.phone)}
+                  className="h-10 w-10"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -365,19 +399,6 @@ export default function CandidateEditDialog({
                   readOnly
                   className="bg-muted"
                 />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Assessment</Label>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  checked={editedCandidate.needsAssessment}
-                  onCheckedChange={(checked) =>
-                    setEditedCandidate((prev) => ({ ...prev, needsAssessment: checked }))
-                  }
-                />
-                <Label>{editedCandidate.needsAssessment ? 'Yes' : 'No'}</Label>
               </div>
             </div>
 
