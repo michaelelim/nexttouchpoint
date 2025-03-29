@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { format, eachDayOfInterval, differenceInDays, parseISO, isToday, isPast } from 'date-fns'
+import { format, eachDayOfInterval, differenceInDays, parseISO } from 'date-fns'
 import { Candidate } from '@/types/candidate'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -100,7 +100,20 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
     }
   }
 
-  const getCardBackgroundColor = (status: string) => {
+  const getCardBackgroundColor = (status: string, candidateColor?: string) => {
+    // If color is provided directly, use it
+    if (candidateColor) {
+      switch (candidateColor.toLowerCase()) {
+        case 'green': return 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800'
+        case 'yellow': return 'bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-800'
+        case 'red': return 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'
+        case 'purple': return 'bg-purple-50 dark:bg-purple-950 border-purple-200 dark:border-purple-800'
+        case 'gray': return 'bg-gray-50 dark:bg-gray-950 border-gray-200 dark:border-gray-800'
+        case 'brown': return 'bg-amber-100 dark:bg-amber-950 border-amber-300 dark:border-amber-800'
+      }
+    }
+
+    // Otherwise fall back to status-based coloring
     switch (status.toLowerCase()) {
       case 'active candidate':
         return 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800'
@@ -124,7 +137,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
     toast.success('Copied to clipboard')
   }
 
-  // Filter candidates based on selected date
+  // Filter candidates based on selected date and remove empty candidates
   let filteredCandidates = selectedDateState
     ? data.filter((candidate) => {
         if (!candidate.nextContact) return false;
@@ -133,6 +146,17 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
       })
     : data;
     
+  // Filter out empty candidates (where all fields are blank or default)
+  filteredCandidates = filteredCandidates.filter(candidate => {
+    // Check if this is an empty candidate entry
+    const hasName = candidate.name && candidate.name.trim() !== '';
+    const hasEmail = candidate.email && candidate.email.trim() !== '';
+    const hasPhone = candidate.phone && candidate.phone.trim() !== '';
+    
+    // Only include candidates that have at least a name, email, or phone
+    return hasName || hasEmail || hasPhone;
+  });
+
   // Sort candidates based on selected sort option
   filteredCandidates = [...filteredCandidates].sort((a, b) => {
     if (sortOption === 'name_asc') {
@@ -292,6 +316,31 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
     }
   };
 
+  // Helper function to get category badge color based on category and color field
+  const getCategoryBadgeColor = (category: string, candidateColor?: string) => {
+    // If color is provided directly, use it
+    if (candidateColor) {
+      switch (candidateColor.toLowerCase()) {
+        case 'green': return 'border-green-500 text-green-700 dark:text-green-400'
+        case 'yellow': return 'border-yellow-500 text-yellow-700 dark:text-yellow-400'
+        case 'red': return 'border-red-500 text-red-700 dark:text-red-400'
+        case 'purple': return 'border-purple-500 text-purple-700 dark:text-purple-400'
+        case 'gray': return 'border-gray-500 text-gray-700 dark:text-gray-400'
+        case 'brown': return 'border-amber-700 text-amber-800 dark:text-amber-400'
+      }
+    }
+
+    // Otherwise fall back to category-based coloring
+    switch (category) {
+      case 'Active Candidate': return 'border-green-500 text-green-700 dark:text-green-400'
+      case 'Difficult to Reach': return 'border-yellow-500 text-yellow-700 dark:text-yellow-400'
+      case 'Unable to Contact': return 'border-red-500 text-red-700 dark:text-red-400'
+      case 'Got a Job': return 'border-purple-500 text-purple-700 dark:text-purple-400'
+      case 'BJO': return 'border-amber-700 text-amber-800 dark:text-amber-400'
+      default: return 'border-gray-500 text-gray-700 dark:text-gray-400'
+    }
+  };
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Candidate Follow-Up Dashboard</h1>
@@ -384,7 +433,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
           return (
             <Card 
               key={candidate.id}
-              className={`cursor-pointer hover:shadow-lg transition-shadow border ${getCardBackgroundColor(currentCategory)}`}
+              className={`cursor-pointer hover:shadow-lg transition-shadow border ${getCardBackgroundColor(currentCategory, candidate.color)}`}
               onClick={() => handleEditCandidate(candidate)}
             >
               <CardContent className="p-4">
@@ -401,12 +450,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                         
                         {/* Category Badge - Shows the contact category */}
                         <div className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-medium ${
-                          currentCategory === 'Active Candidate' ? 'border-green-500 text-green-700 dark:text-green-400' : 
-                          currentCategory === 'Difficult to Reach' ? 'border-yellow-500 text-yellow-700 dark:text-yellow-400' :
-                          currentCategory === 'Unable to Contact' ? 'border-red-500 text-red-700 dark:text-red-400' :
-                          currentCategory === 'Got a Job' ? 'border-purple-500 text-purple-700 dark:text-purple-400' :
-                          currentCategory === 'BJO' ? 'border-amber-700 text-amber-800 dark:text-amber-400' :
-                          'border-gray-500 text-gray-700 dark:text-gray-400'
+                          getCategoryBadgeColor(currentCategory, candidate.color)
                         }`}>
                           {currentCategory}
                         </div>
