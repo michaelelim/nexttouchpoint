@@ -245,12 +245,22 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
   ];
 
   const handleChangeStatus = (candidate: Candidate, newCategory: string) => {
-    // Create a new candidate object with only the category changed
-    // We'll store the category in a new field so it doesn't affect the status
+    // Determine the corresponding color for the new category
+    let newColor: string | undefined;
+    switch (newCategory.toLowerCase()) {
+      case 'active candidate': newColor = 'green'; break;
+      case 'difficult to reach': newColor = 'yellow'; break;
+      case 'unable to contact': newColor = 'red'; break;
+      case 'got a job': newColor = 'purple'; break;
+      case 'active hold': newColor = 'gray'; break;
+      case 'bjo': newColor = 'brown'; break;
+    }
+    
+    // Create a new candidate object with category and color changed
     const updatedCandidate = {
       ...candidate,
-      // Don't modify the status field, add a new field for the category
-      category: newCategory 
+      category: newCategory,
+      color: newColor // Update the color field to match the category
     };
     
     // Update the candidate without triggering the edit dialog
@@ -267,7 +277,8 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
         lowerStatus === 'difficult to reach' || 
         lowerStatus === 'unable to contact' || 
         lowerStatus === 'got a job' || 
-        lowerStatus === 'active hold') {
+        lowerStatus === 'active hold' ||
+        lowerStatus === 'bjo') {
       return status; // The status is already a category
     }
     
@@ -283,12 +294,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
 
   // Get the current category of a candidate
   const getCandidateCategory = (candidate: Candidate): string => {
-    // If candidate has a category field, use it
-    if (candidate.category) {
-      return candidate.category;
-    }
-    
-    // If candidate has a color field, map it to the corresponding category
+    // If candidate has a color field, map it to the corresponding category (prioritize color over category)
     if (candidate.color) {
       switch (candidate.color.toLowerCase()) {
         case 'green': return 'Active Candidate';
@@ -299,6 +305,11 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
         case 'brown': return 'BJO';
         default: return 'Active Candidate';
       }
+    }
+    
+    // Next, check if candidate has a category field
+    if (candidate.category) {
+      return candidate.category;
     }
     
     // Otherwise, infer from status (for backward compatibility)

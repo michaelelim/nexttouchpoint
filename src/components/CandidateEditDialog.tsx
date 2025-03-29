@@ -37,6 +37,14 @@ interface CandidateEditDialogProps {
 const STREAM_OPTIONS = ['A', 'B', 'C']
 const LICENSE_OPTIONS = ['No', 'G1', 'G2', 'Full G']
 const LOCATION_OPTIONS = ['Ajax', 'Pickering', 'Whitby', 'Oshawa', 'Other']
+const CATEGORY_OPTIONS = [
+  { label: 'Active Candidate', value: 'Active Candidate', color: 'green' },
+  { label: 'Difficult to Reach', value: 'Difficult to Reach', color: 'yellow' },
+  { label: 'Unable to Contact', value: 'Unable to Contact', color: 'red' },
+  { label: 'Got a Job', value: 'Got a Job', color: 'purple' },
+  { label: 'Active Hold', value: 'Active Hold', color: 'gray' },
+  { label: 'BJO', value: 'BJO', color: 'brown' },
+];
 
 export default function CandidateEditDialog({
   candidate,
@@ -289,6 +297,34 @@ export default function CandidateEditDialog({
                   <SelectItem value="Follow Up">Follow Up</SelectItem>
                   <SelectItem value="Not Interested">Not Interested</SelectItem>
                   <SelectItem value="Converted">Converted</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Select
+                value={editedCandidate.category || ''}
+                onValueChange={(value) => {
+                  // Find the matching color for this category
+                  const categoryOption = CATEGORY_OPTIONS.find(option => option.value === value);
+                  // Update both category and color
+                  setEditedCandidate((prev) => ({
+                    ...prev,
+                    category: value,
+                    color: categoryOption?.color || ''
+                  }));
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORY_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
