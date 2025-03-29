@@ -14,6 +14,7 @@ export interface Candidate {
   nextContact: Date | null
   status: string
   category?: string
+  color?: string // For Excel import: Green, Yellow, Red, Purple, Gray, Brown
   notes: string
   // Pay stub related fields (only applicable if employed)
   isEmployed: boolean

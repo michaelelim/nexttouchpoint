@@ -112,6 +112,8 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
         return 'bg-purple-50 dark:bg-purple-950 border-purple-200 dark:border-purple-800'
       case 'active hold':
         return 'bg-gray-50 dark:bg-gray-950 border-gray-200 dark:border-gray-800'
+      case 'bjo':
+        return 'bg-amber-100 dark:bg-amber-950 border-amber-300 dark:border-amber-800'
       default:
         return 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
     }
@@ -215,6 +217,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
     { label: 'Unable to Contact', value: 'Unable to Contact', color: 'text-red-500', bgColor: 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800' },
     { label: 'Got a Job', value: 'Got a Job', color: 'text-purple-500', bgColor: 'bg-purple-50 dark:bg-purple-950 border-purple-200 dark:border-purple-800' },
     { label: 'Active Hold', value: 'Active Hold', color: 'text-gray-500', bgColor: 'bg-gray-50 dark:bg-gray-950 border-gray-200 dark:border-gray-800' },
+    { label: 'BJO', value: 'BJO', color: 'text-amber-700', bgColor: 'bg-amber-100 dark:bg-amber-950 border-amber-300 dark:border-amber-800' },
   ];
 
   const handleChangeStatus = (candidate: Candidate, newCategory: string) => {
@@ -259,6 +262,19 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
     // If candidate has a category field, use it
     if (candidate.category) {
       return candidate.category;
+    }
+    
+    // If candidate has a color field, map it to the corresponding category
+    if (candidate.color) {
+      switch (candidate.color.toLowerCase()) {
+        case 'green': return 'Active Candidate';
+        case 'yellow': return 'Difficult to Reach';
+        case 'red': return 'Unable to Contact';
+        case 'purple': return 'Got a Job';
+        case 'gray': return 'Active Hold';
+        case 'brown': return 'BJO';
+        default: return 'Active Candidate';
+      }
     }
     
     // Otherwise, infer from status (for backward compatibility)
@@ -389,6 +405,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                           currentCategory === 'Difficult to Reach' ? 'border-yellow-500 text-yellow-700 dark:text-yellow-400' :
                           currentCategory === 'Unable to Contact' ? 'border-red-500 text-red-700 dark:text-red-400' :
                           currentCategory === 'Got a Job' ? 'border-purple-500 text-purple-700 dark:text-purple-400' :
+                          currentCategory === 'BJO' ? 'border-amber-700 text-amber-800 dark:text-amber-400' :
                           'border-gray-500 text-gray-700 dark:text-gray-400'
                         }`}>
                           {currentCategory}
