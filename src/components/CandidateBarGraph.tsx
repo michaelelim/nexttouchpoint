@@ -122,70 +122,74 @@ export function CandidateBarGraph({ candidates, onBarClick, selectedDate }: Cand
   }
 
   return (
-    <Card>
+    <Card className="w-full overflow-hidden">
       <CardHeader className="pb-2">
-        <div className="flex justify-between items-center">
-          <CardTitle>Candidates by Next Contact Date</CardTitle>
-          <RadioGroup
-            value={dayRange.toString()}
-            onValueChange={(value) => setDayRange(parseInt(value))}
-            className="flex space-x-4"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="15" id="r15" />
-              <Label htmlFor="r15">15 Days</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="30" id="r30" />
-              <Label htmlFor="r30">30 Days</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="60" id="r60" />
-              <Label htmlFor="r60">60 Days</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="90" id="r90" />
-              <Label htmlFor="r90">90 Days</Label>
-            </div>
-          </RadioGroup>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+          <CardTitle className="text-lg">Candidates by Next Contact Date</CardTitle>
+          <div className="w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
+            <RadioGroup
+              value={dayRange.toString()}
+              onValueChange={(value) => setDayRange(parseInt(value))}
+              className="flex space-x-3 min-w-max"
+            >
+              <div className="flex items-center space-x-1">
+                <RadioGroupItem value="15" id="r15" />
+                <Label htmlFor="r15" className="text-xs sm:text-sm">15 Days</Label>
+              </div>
+              <div className="flex items-center space-x-1">
+                <RadioGroupItem value="30" id="r30" />
+                <Label htmlFor="r30" className="text-xs sm:text-sm">30 Days</Label>
+              </div>
+              <div className="flex items-center space-x-1">
+                <RadioGroupItem value="60" id="r60" />
+                <Label htmlFor="r60" className="text-xs sm:text-sm">60 Days</Label>
+              </div>
+              <div className="flex items-center space-x-1">
+                <RadioGroupItem value="90" id="r90" />
+                <Label htmlFor="r90" className="text-xs sm:text-sm">90 Days</Label>
+              </div>
+            </RadioGroup>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="h-[200px]" ref={chartContainerRef}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart 
-              data={chartData}
-              margin={{ left: 0, right: 0, bottom: 10 }}
-            >
-              <XAxis
-                dataKey="date"
-                tickFormatter={(date) => format(date, 'MMM d')}
-                interval={0}
-                tick={{ fontSize: 10, angle: -45, textAnchor: 'end' }}
-                height={50}
-              />
-              <YAxis allowDecimals={false} />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar
-                dataKey="count"
-                onClick={(data) => {
-                  if (onBarClick && data.payload.date) {
-                    onBarClick(data.payload.date)
-                  }
-                }}
-                className="cursor-pointer"
+        <div className="h-[200px] w-full overflow-x-auto" ref={chartContainerRef}>
+          <div className="min-w-[600px] h-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart 
+                data={chartData}
+                margin={{ left: 0, right: 0, bottom: 10 }}
               >
-                {chartData.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={entry.fill}
-                    stroke={entry.stroke}
-                    strokeWidth={entry.strokeWidth} 
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={(date) => format(date, 'MMM d')}
+                  interval={Math.max(0, Math.floor(chartData.length / 10))}
+                  tick={{ fontSize: 10, angle: -45, textAnchor: 'end' }}
+                  height={50}
+                />
+                <YAxis allowDecimals={false} />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar
+                  dataKey="count"
+                  onClick={(data) => {
+                    if (onBarClick && data.payload.date) {
+                      onBarClick(data.payload.date)
+                    }
+                  }}
+                  className="cursor-pointer"
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={entry.fill}
+                      stroke={entry.stroke}
+                      strokeWidth={entry.strokeWidth} 
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </CardContent>
     </Card>

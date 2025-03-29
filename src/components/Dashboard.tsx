@@ -139,11 +139,12 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
+    <div className="w-full mx-auto space-y-4 px-2 sm:px-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
+            size="sm"
             onClick={() => document.getElementById('file-upload')?.click()}
           >
             Import Excel
@@ -157,13 +158,14 @@ export default function Dashboard() {
           />
           <Button
             variant="outline"
+            size="sm"
             onClick={handleExport}
             disabled={candidates.length === 0}
           >
             Export Excel
           </Button>
           
-          <div className="relative w-64 ml-2">
+          <div className="relative w-full sm:w-64 mt-2 sm:mt-0">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search candidates..."
@@ -177,8 +179,8 @@ export default function Dashboard() {
         <ThemeToggle />
       </div>
       
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+      <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-3 sm:p-6 overflow-hidden">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4">
           Follow-ups by Date ({filteredCandidates.length} candidates)
         </h2>
         <PivotTable

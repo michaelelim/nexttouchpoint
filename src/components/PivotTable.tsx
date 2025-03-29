@@ -353,22 +353,24 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
   };
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Candidate Follow-Up Dashboard</h1>
-      <CandidateBarGraph 
-        candidates={data} 
-        onBarClick={handleBarClick}
-        selectedDate={selectedDate}
-      />
+    <div className="w-full overflow-hidden">
+      <h1 className="text-lg sm:text-2xl font-bold mb-2 sm:mb-4">Candidate Follow-Up Dashboard</h1>
+      <div className="w-full overflow-x-auto pb-4">
+        <CandidateBarGraph 
+          candidates={data} 
+          onBarClick={handleBarClick}
+          selectedDate={selectedDate}
+        />
+      </div>
       
-      <div className="flex justify-between items-center mt-8 mb-4">
-        <h2 className="text-xl font-semibold">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-4 sm:mt-8 mb-4 gap-2">
+        <h2 className="text-base sm:text-xl font-semibold">
           {selectedDateState 
             ? `Candidates to Contact on ${formatDateWithAdjustment(selectedDateState)}`
             : 'Showing All Candidates'}
         </h2>
         
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Column Layout Selector */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -436,7 +438,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
         </div>
       </div>
       
-      <div className={`grid ${getGridClasses()} gap-4`}>
+      <div className={`grid ${getGridClasses()} gap-2 sm:gap-4`}>
         {filteredCandidates.map((candidate) => {
           const currentCategory = getCandidateCategory(candidate);
           const isEditingNextContact = editingNextContactId === candidate.id;
@@ -444,15 +446,14 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
           return (
             <Card 
               key={candidate.id}
-              className={`cursor-pointer hover:shadow-lg transition-shadow border ${getCardBackgroundColor(currentCategory, candidate.color)}`}
-              onClick={() => handleEditCandidate(candidate)}
+              className={`hover:shadow-lg transition-shadow border ${getCardBackgroundColor(currentCategory, candidate.color)}`}
             >
-              <CardContent className="p-4">
-                <div className="flex flex-col space-y-2">
+              <CardContent className="p-2 sm:p-4">
+                <div className="flex flex-col space-y-1 sm:space-y-2">
                   {/* Header with name and status */}
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h3 className="text-base font-semibold truncate">{candidate.name}</h3>
+                      <h3 className="text-sm sm:text-base font-semibold truncate">{candidate.name}</h3>
                       <div className="flex flex-wrap gap-1 items-center mt-1">
                         {/* Status Badge - Shows the process status */}
                         <Badge className={getStatusColor(candidate.status)}>
@@ -467,7 +468,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                         </div>
                         
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-5 w-5 p-0">
                               <Circle className="h-3 w-3" />
                             </Button>
@@ -478,7 +479,6 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                                 key={option.value}
                                 className={`flex items-center gap-2 ${option.value === currentCategory ? 'bg-muted' : ''}`}
                                 onClick={(e) => {
-                                  e.stopPropagation();
                                   handleChangeStatus(candidate, option.value);
                                 }}
                               >
@@ -496,12 +496,17 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                         variant="ghost"
                         size="sm"
                         className="h-6 w-6 p-0"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          copyToClipboard(candidate.name)
-                        }}
+                        onClick={() => copyToClipboard(candidate.name)}
                       >
                         <Copy className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => handleEditCandidate(candidate)}
+                      >
+                        <Pencil className="h-3 w-3" />
                       </Button>
                     </div>
                   </div>
@@ -516,10 +521,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                           variant="ghost"
                           size="sm"
                           className="h-5 w-5 p-0 ml-1"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            copyToClipboard(candidate.email)
-                          }}
+                          onClick={() => copyToClipboard(candidate.email)}
                         >
                           <Copy className="h-2.5 w-2.5" />
                         </Button>
@@ -531,10 +533,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                           variant="ghost"
                           size="sm"
                           className="h-5 w-5 p-0 ml-1"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            copyToClipboard(candidate.phone)
-                          }}
+                          onClick={() => copyToClipboard(candidate.phone)}
                         >
                           <Copy className="h-2.5 w-2.5" />
                         </Button>
@@ -565,10 +564,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                       
                       {isEditingNextContact ? (
                         // Editing mode
-                        <div 
-                          className="flex-1 flex items-center"
-                          onClick={(e) => e.stopPropagation()}
-                        >
+                        <div className="flex-1 flex items-center">
                           <Popover>
                             <PopoverTrigger asChild>
                               <Button
@@ -622,15 +618,14 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                             variant="ghost"
                             size="sm"
                             className="h-5 w-5 p-0"
-                            onClick={(e) => {
-                              e.stopPropagation();
+                            onClick={() => 
                               handleStartEditingNextContact(
                                 candidate.id, 
                                 candidate.nextContact 
                                   ? new Date(candidate.nextContact) 
                                   : null
-                              );
-                            }}
+                              )
+                            }
                           >
                             <Pencil className="h-2.5 w-2.5" />
                           </Button>
