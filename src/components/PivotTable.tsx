@@ -110,7 +110,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
         case 'red': return 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'
         case 'purple': return 'bg-purple-50 dark:bg-purple-950 border-purple-200 dark:border-purple-800'
         case 'gray': return 'bg-gray-50 dark:bg-gray-950 border-gray-200 dark:border-gray-800'
-        case 'brown': return 'bg-amber-100 dark:bg-amber-950 border-amber-300 dark:border-amber-800'
+        case 'brown': return 'bg-orange-100 dark:bg-orange-950 border-orange-400 dark:border-orange-800'
       }
     }
 
@@ -127,7 +127,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
       case 'active hold':
         return 'bg-gray-50 dark:bg-gray-950 border-gray-200 dark:border-gray-800'
       case 'bjo':
-        return 'bg-amber-100 dark:bg-amber-950 border-amber-300 dark:border-amber-800'
+        return 'bg-orange-100 dark:bg-orange-950 border-orange-400 dark:border-orange-800'
       default:
         return 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
     }
@@ -176,11 +176,11 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
       return new Date(b.lastTouchDate).getTime() - new Date(a.lastTouchDate).getTime();
     } else if (sortOption === 'category') {
       // Sort by activity status (category)
-      const categoryA = getCandidateCategory(a);
-      const categoryB = getCandidateCategory(b);
+      const categoryA = getCandidateCategory(a) || 'Active Candidate';
+      const categoryB = getCandidateCategory(b) || 'Active Candidate';
       
       // Define the order of categories (from most important to least)
-      const categoryOrder = {
+      const categoryOrder: Record<string, number> = {
         'Active Candidate': 1,
         'Difficult to Reach': 2,
         'Unable to Contact': 3,
@@ -190,8 +190,8 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
       };
       
       // Get the category order (default to 99 if not found)
-      const orderA = categoryOrder[categoryA as keyof typeof categoryOrder] || 99;
-      const orderB = categoryOrder[categoryB as keyof typeof categoryOrder] || 99;
+      const orderA = categoryOrder[categoryA] || 99;
+      const orderB = categoryOrder[categoryB] || 99;
       
       // Sort by category order
       return orderA - orderB;
@@ -263,7 +263,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
     { label: 'Unable to Contact', value: 'Unable to Contact', color: 'text-red-500', bgColor: 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800' },
     { label: 'Got a Job', value: 'Got a Job', color: 'text-purple-500', bgColor: 'bg-purple-50 dark:bg-purple-950 border-purple-200 dark:border-purple-800' },
     { label: 'Active Hold', value: 'Active Hold', color: 'text-gray-500', bgColor: 'bg-gray-50 dark:bg-gray-950 border-gray-200 dark:border-gray-800' },
-    { label: 'BJO', value: 'BJO', color: 'text-amber-700', bgColor: 'bg-amber-100 dark:bg-amber-950 border-amber-300 dark:border-amber-800' },
+    { label: 'BJO', value: 'BJO', color: 'text-orange-600', bgColor: 'bg-orange-100 dark:bg-orange-950 border-orange-400 dark:border-orange-800' },
   ];
 
   const handleChangeStatus = (candidate: Candidate, newCategory: string) => {
@@ -275,7 +275,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
       case 'unable to contact': newColor = 'red'; break;
       case 'got a job': newColor = 'purple'; break;
       case 'active hold': newColor = 'gray'; break;
-      case 'bjo': newColor = 'brown'; break;
+      case 'bjo': newColor = 'brown'; break; // Keep this as 'brown' for backward compatibility with existing data
     }
     
     // Create a new candidate object with category and color changed
@@ -359,7 +359,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
         case 'red': return 'border-red-500 text-red-700 dark:text-red-400'
         case 'purple': return 'border-purple-500 text-purple-700 dark:text-purple-400'
         case 'gray': return 'border-gray-500 text-gray-700 dark:text-gray-400'
-        case 'brown': return 'border-amber-700 text-amber-800 dark:text-amber-400'
+        case 'brown': return 'border-orange-600 text-orange-800 dark:text-orange-400'
       }
     }
 
@@ -369,7 +369,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
       case 'Difficult to Reach': return 'border-yellow-500 text-yellow-700 dark:text-yellow-400'
       case 'Unable to Contact': return 'border-red-500 text-red-700 dark:text-red-400'
       case 'Got a Job': return 'border-purple-500 text-purple-700 dark:text-purple-400'
-      case 'BJO': return 'border-amber-700 text-amber-800 dark:text-amber-400'
+      case 'BJO': return 'border-orange-600 text-orange-800 dark:text-orange-400'
       default: return 'border-gray-500 text-gray-700 dark:text-gray-400'
     }
   };

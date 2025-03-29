@@ -154,7 +154,7 @@ export function CandidateBarGraph({ candidates, onBarClick, selectedDate }: Cand
       </CardHeader>
       <CardContent>
         <div className="h-[200px] w-full overflow-x-auto" ref={chartContainerRef}>
-          <div className="min-w-[600px] h-full">
+          <div className="min-w-[800px] h-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart 
                 data={chartData}
@@ -163,7 +163,7 @@ export function CandidateBarGraph({ candidates, onBarClick, selectedDate }: Cand
                 <XAxis
                   dataKey="date"
                   tickFormatter={(date) => format(date, 'MMM d')}
-                  interval={Math.max(0, Math.floor(chartData.length / 10))}
+                  interval={0}
                   tick={{ fontSize: 10, angle: -45, textAnchor: 'end' }}
                   height={50}
                 />
