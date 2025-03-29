@@ -26,7 +26,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar as UICalendar } from "@/components/ui/calendar"
 
-type SortOption = 'name_asc' | 'name_desc' | 'last_contact_asc' | 'last_contact_desc';
+type SortOption = 'name_asc' | 'name_desc' | 'last_contact_asc' | 'last_contact_desc' | 'category';
 type ColumnLayout = '1' | '2' | '3';
 
 interface PivotTableProps {
@@ -48,6 +48,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
   const [columnLayout, setColumnLayout] = useState<ColumnLayout>('3')
   const [editingNextContactId, setEditingNextContactId] = useState<string | null>(null)
   const [tempNextContactDate, setTempNextContactDate] = useState<Date | null>(null)
+  const [nextContactPopoverOpen, setNextContactPopoverOpen] = useState(false)
   
   // Update internal state when prop changes
   useEffect(() => {
@@ -173,6 +174,27 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
       if (!a.lastTouchDate) return 1;
       if (!b.lastTouchDate) return -1;
       return new Date(b.lastTouchDate).getTime() - new Date(a.lastTouchDate).getTime();
+    } else if (sortOption === 'category') {
+      // Sort by activity status (category)
+      const categoryA = getCandidateCategory(a);
+      const categoryB = getCandidateCategory(b);
+      
+      // Define the order of categories (from most important to least)
+      const categoryOrder = {
+        'Active Candidate': 1,
+        'Difficult to Reach': 2,
+        'Unable to Contact': 3,
+        'Got a Job': 4,
+        'Active Hold': 5,
+        'BJO': 6
+      };
+      
+      // Get the category order (default to 99 if not found)
+      const orderA = categoryOrder[categoryA as keyof typeof categoryOrder] || 99;
+      const orderB = categoryOrder[categoryB as keyof typeof categoryOrder] || 99;
+      
+      // Sort by category order
+      return orderA - orderB;
     }
     return 0;
   });
@@ -432,6 +454,12 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                     <span>Last Contact (Newest first)</span>
                   </div>
                 </DropdownMenuRadioItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioItem value="category">
+                  <div className="flex items-center gap-2">
+                    <span>Activity Status</span>
+                  </div>
+                </DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -565,12 +593,13 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                       {isEditingNextContact ? (
                         // Editing mode
                         <div className="flex-1 flex items-center">
-                          <Popover>
+                          <Popover open={nextContactPopoverOpen} onOpenChange={setNextContactPopoverOpen}>
                             <PopoverTrigger asChild>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 className="h-6 w-full justify-start px-2 py-1 text-xs font-normal"
+                                onClick={() => setNextContactPopoverOpen(true)}
                               >
                                 {tempNextContactDate 
                                   ? format(tempNextContactDate, 'MMM d') 
@@ -581,7 +610,10 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                               <UICalendar
                                 mode="single"
                                 selected={tempNextContactDate || undefined}
-                                onSelect={(date) => setTempNextContactDate(date || null)}
+                                onSelect={(date) => {
+                                  setTempNextContactDate(date || null);
+                                  setNextContactPopoverOpen(false);
+                                }}
                                 initialFocus
                               />
                             </PopoverContent>

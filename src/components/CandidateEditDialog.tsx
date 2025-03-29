@@ -53,6 +53,12 @@ export default function CandidateEditDialog({
   onSave,
 }: CandidateEditDialogProps) {
   const [editedCandidate, setEditedCandidate] = useState<Candidate>(candidate)
+  const [nextContactPopoverOpen, setNextContactPopoverOpen] = useState(false)
+  const [firstPayPopoverOpen, setFirstPayPopoverOpen] = useState(false)
+  const [secondPayPopoverOpen, setSecondPayPopoverOpen] = useState(false)
+  const [thirdPayPopoverOpen, setThirdPayPopoverOpen] = useState(false)
+  const [fourthPayPopoverOpen, setFourthPayPopoverOpen] = useState(false)
+  const [fifthPayPopoverOpen, setFifthPayPopoverOpen] = useState(false)
 
   const handleSave = () => {
     onSave(editedCandidate)
@@ -71,6 +77,8 @@ export default function CandidateEditDialog({
         status: isCurrentOrPast ? 'Pending' : 'Contacted'
       }
     })
+    // Close the popover after selecting a date
+    setNextContactPopoverOpen(false)
   }
 
   const copyToClipboard = (text: string) => {
@@ -368,11 +376,12 @@ export default function CandidateEditDialog({
           <div className="space-y-6">
             <div className="space-y-2">
               <Label>Next Contact Date</Label>
-              <Popover>
+              <Popover open={nextContactPopoverOpen} onOpenChange={setNextContactPopoverOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={`w-full justify-start text-left font-normal ${!editedCandidate.nextContact && 'text-muted-foreground'}`}
+                    onClick={() => setNextContactPopoverOpen(true)}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {editedCandidate.nextContact 
@@ -419,11 +428,12 @@ export default function CandidateEditDialog({
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>1st Pay</Label>
-                  <Popover>
+                  <Popover open={firstPayPopoverOpen} onOpenChange={setFirstPayPopoverOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         className={`w-full justify-start text-left font-normal ${!editedCandidate.payStubs?.firstPayStub && 'text-muted-foreground'}`}
+                        onClick={() => setFirstPayPopoverOpen(true)}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {editedCandidate.payStubs?.firstPayStub ? format(editedCandidate.payStubs.firstPayStub, 'PPP') : 'Pick a date'}
@@ -433,15 +443,16 @@ export default function CandidateEditDialog({
                       <Calendar
                         mode="single"
                         selected={editedCandidate.payStubs?.firstPayStub || undefined}
-                        onSelect={(date: Date | undefined) =>
+                        onSelect={(date: Date | undefined) => {
                           setEditedCandidate((prev) => ({
                             ...prev,
                             payStubs: {
                               ...prev.payStubs,
                               firstPayStub: date || null
                             }
-                          }))
-                        }
+                          }));
+                          setFirstPayPopoverOpen(false);
+                        }}
                         initialFocus
                       />
                     </PopoverContent>
@@ -450,11 +461,12 @@ export default function CandidateEditDialog({
 
                 <div className="space-y-2">
                   <Label>2nd Pay</Label>
-                  <Popover>
+                  <Popover open={secondPayPopoverOpen} onOpenChange={setSecondPayPopoverOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         className={`w-full justify-start text-left font-normal ${!editedCandidate.payStubs?.secondPayStub && 'text-muted-foreground'}`}
+                        onClick={() => setSecondPayPopoverOpen(true)}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {editedCandidate.payStubs?.secondPayStub ? format(editedCandidate.payStubs.secondPayStub, 'PPP') : 'Pick a date'}
@@ -464,15 +476,16 @@ export default function CandidateEditDialog({
                       <Calendar
                         mode="single"
                         selected={editedCandidate.payStubs?.secondPayStub || undefined}
-                        onSelect={(date: Date | undefined) =>
+                        onSelect={(date: Date | undefined) => {
                           setEditedCandidate((prev) => ({
                             ...prev,
                             payStubs: {
                               ...prev.payStubs,
                               secondPayStub: date || null
                             }
-                          }))
-                        }
+                          }));
+                          setSecondPayPopoverOpen(false);
+                        }}
                         initialFocus
                       />
                     </PopoverContent>
@@ -481,11 +494,12 @@ export default function CandidateEditDialog({
 
                 <div className="space-y-2">
                   <Label>3rd Pay</Label>
-                  <Popover>
+                  <Popover open={thirdPayPopoverOpen} onOpenChange={setThirdPayPopoverOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         className={`w-full justify-start text-left font-normal ${!editedCandidate.payStubs?.thirdPayStub && 'text-muted-foreground'}`}
+                        onClick={() => setThirdPayPopoverOpen(true)}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {editedCandidate.payStubs?.thirdPayStub ? format(editedCandidate.payStubs.thirdPayStub, 'PPP') : 'Pick a date'}
@@ -495,15 +509,16 @@ export default function CandidateEditDialog({
                       <Calendar
                         mode="single"
                         selected={editedCandidate.payStubs?.thirdPayStub || undefined}
-                        onSelect={(date: Date | undefined) =>
+                        onSelect={(date: Date | undefined) => {
                           setEditedCandidate((prev) => ({
                             ...prev,
                             payStubs: {
                               ...prev.payStubs,
                               thirdPayStub: date || null
                             }
-                          }))
-                        }
+                          }));
+                          setThirdPayPopoverOpen(false);
+                        }}
                         initialFocus
                       />
                     </PopoverContent>
@@ -512,11 +527,12 @@ export default function CandidateEditDialog({
 
                 <div className="space-y-2">
                   <Label>4th Pay</Label>
-                  <Popover>
+                  <Popover open={fourthPayPopoverOpen} onOpenChange={setFourthPayPopoverOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         className={`w-full justify-start text-left font-normal ${!editedCandidate.payStubs?.fourthPayStub && 'text-muted-foreground'}`}
+                        onClick={() => setFourthPayPopoverOpen(true)}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {editedCandidate.payStubs?.fourthPayStub ? format(editedCandidate.payStubs.fourthPayStub, 'PPP') : 'Pick a date'}
@@ -526,15 +542,16 @@ export default function CandidateEditDialog({
                       <Calendar
                         mode="single"
                         selected={editedCandidate.payStubs?.fourthPayStub || undefined}
-                        onSelect={(date: Date | undefined) =>
+                        onSelect={(date: Date | undefined) => {
                           setEditedCandidate((prev) => ({
                             ...prev,
                             payStubs: {
                               ...prev.payStubs,
                               fourthPayStub: date || null
                             }
-                          }))
-                        }
+                          }));
+                          setFourthPayPopoverOpen(false);
+                        }}
                         initialFocus
                       />
                     </PopoverContent>
@@ -543,11 +560,12 @@ export default function CandidateEditDialog({
 
                 <div className="space-y-2">
                   <Label>5th Pay</Label>
-                  <Popover>
+                  <Popover open={fifthPayPopoverOpen} onOpenChange={setFifthPayPopoverOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         className={`w-full justify-start text-left font-normal ${!editedCandidate.payStubs?.fifthPayStub && 'text-muted-foreground'}`}
+                        onClick={() => setFifthPayPopoverOpen(true)}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {editedCandidate.payStubs?.fifthPayStub ? format(editedCandidate.payStubs.fifthPayStub, 'PPP') : 'Pick a date'}
@@ -557,15 +575,16 @@ export default function CandidateEditDialog({
                       <Calendar
                         mode="single"
                         selected={editedCandidate.payStubs?.fifthPayStub || undefined}
-                        onSelect={(date: Date | undefined) =>
+                        onSelect={(date: Date | undefined) => {
                           setEditedCandidate((prev) => ({
                             ...prev,
                             payStubs: {
                               ...prev.payStubs,
                               fifthPayStub: date || null
                             }
-                          }))
-                        }
+                          }));
+                          setFifthPayPopoverOpen(false);
+                        }}
                         initialFocus
                       />
                     </PopoverContent>
