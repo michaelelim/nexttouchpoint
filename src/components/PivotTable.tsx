@@ -176,25 +176,33 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
       return new Date(b.lastTouchDate).getTime() - new Date(a.lastTouchDate).getTime();
     } else if (sortOption === 'category') {
       // Sort by activity status (category)
-      const categoryA = getCandidateCategory(a) || 'Active Candidate';
-      const categoryB = getCandidateCategory(b) || 'Active Candidate';
-      
-      // Define the order of categories (from most important to least)
-      const categoryOrder: Record<string, number> = {
-        'Active Candidate': 1,
-        'Difficult to Reach': 2,
-        'Unable to Contact': 3,
-        'Got a Job': 4,
-        'Active Hold': 5,
-        'BJO': 6
-      };
-      
-      // Get the category order (default to 99 if not found)
-      const orderA = categoryOrder[categoryA] || 99;
-      const orderB = categoryOrder[categoryB] || 99;
-      
-      // Sort by category order
-      return orderA - orderB;
+      try {
+        // Get categories safely with fallbacks
+        const categoryA = getCandidateCategory(a) || 'Active Candidate';
+        const categoryB = getCandidateCategory(b) || 'Active Candidate';
+        
+        // Define the order of categories (from most important to least)
+        const categoryOrder: Record<string, number> = {
+          'Active Candidate': 1,
+          'Difficult to Reach': 2,
+          'Unable to Contact': 3,
+          'Got a Job': 4,
+          'Active Hold': 5,
+          'BJO': 6
+        };
+        
+        // Get the category order (default to 99 if not found)
+        const orderA = typeof categoryA === 'string' && categoryOrder[categoryA] !== undefined ? 
+          categoryOrder[categoryA] : 99;
+        const orderB = typeof categoryB === 'string' && categoryOrder[categoryB] !== undefined ? 
+          categoryOrder[categoryB] : 99;
+        
+        // Sort by category order
+        return orderA - orderB;
+      } catch (error) {
+        console.error("Error during category sorting:", error);
+        return 0; // Default to no change in sort order on error
+      }
     }
     return 0;
   });
@@ -291,6 +299,8 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
 
   // Add a category mapping for the status values
   const getCategoryFromStatus = (status: string): string => {
+    if (!status) return 'Active Candidate';
+    
     // Convert status to lowercase for case-insensitive matching
     const lowerStatus = status.toLowerCase();
     
@@ -316,16 +326,18 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
 
   // Get the current category of a candidate
   const getCandidateCategory = (candidate: Candidate): string => {
+    if (!candidate) return 'Active Candidate'; // Default for invalid input
+    
     // If candidate has a color field, map it to the corresponding category (prioritize color over category)
     if (candidate.color) {
-      switch (candidate.color.toLowerCase()) {
+      const colorLower = candidate.color.toLowerCase();
+      switch (colorLower) {
         case 'green': return 'Active Candidate';
         case 'yellow': return 'Difficult to Reach';
         case 'red': return 'Unable to Contact';
         case 'purple': return 'Got a Job';
         case 'gray': return 'Active Hold';
         case 'brown': return 'BJO';
-        default: return 'Active Candidate';
       }
     }
     
@@ -335,7 +347,11 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
     }
     
     // Otherwise, infer from status (for backward compatibility)
-    return getCategoryFromStatus(candidate.status);
+    if (candidate.status) {
+      return getCategoryFromStatus(candidate.status);
+    }
+    
+    return 'Active Candidate'; // Default category
   };
 
   // Get grid classes based on column layout
