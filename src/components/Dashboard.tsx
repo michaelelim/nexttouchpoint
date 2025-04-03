@@ -8,10 +8,17 @@ import PivotTable from './PivotTable'
 import ThemeToggle from './ThemeToggle'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
-import { Search, Clock } from 'lucide-react'
+import { Search, Clock, PlusCircle, Archive, Filter } from 'lucide-react'
 import CandidateEditDialog from './CandidateEditDialog'
 import { toast } from 'sonner'
 import { getBackupPath, createBackupFilename } from '@/lib/file-system'
+import { Badge } from '@/components/ui/badge'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export default function Dashboard() {
   const [dateRange, setDateRange] = useState<{ start: Date; end: Date }>({
@@ -27,80 +34,89 @@ export default function Dashboard() {
     // Default to today's date
     return startOfDay(new Date())
   })
+  const [showArchived, setShowArchived] = useState(false)
   const [lastAutoExport, setLastAutoExport] = useState<Date | null>(null);
   const [autoExportEnabled, setAutoExportEnabled] = useState<boolean>(false);
 
   const filteredCandidates = useMemo(() => {
-    if (!searchQuery.trim()) return candidates;
+    let filtered = candidates;
     
-    const query = searchQuery.toLowerCase().trim();
+    // Filter by archived status
+    filtered = filtered.filter(c => showArchived ? true : !c.archived);
     
-    return candidates.filter(candidate => {
-      // Check if it's a direct match in any standard field
-      // This catches both primitive fields and any custom fields added during Excel import
-      for (const [key, value] of Object.entries(candidate)) {
-        // Skip non-searchable fields like dates and objects
-        if (value === null || value === undefined) continue;
-        if (typeof value === 'boolean') continue;
-        
-        // Format dates for searching
-        if (value instanceof Date) {
-          if (format(value, 'MMM d, yyyy').toLowerCase().includes(query)) {
-            return true;
-          }
-          continue;
-        }
-        
-        // Skip complex objects (but we'll handle them separately)
-        if (typeof value === 'object') continue;
-        
-        // Convert value to string and check if it includes the query
-        const strValue = String(value).toLowerCase();
-        if (strValue.includes(query)) {
-          return true;
-        }
-      }
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
       
-      // Additional checks for nested fields
-      if (candidate.payStubs) {
-        // Convert any date fields in payStubs to strings for searching
-        const payStubDates = [
-          candidate.payStubs.firstPayStub,
-          candidate.payStubs.secondPayStub,
-          candidate.payStubs.thirdPayStub,
-          candidate.payStubs.fourthPayStub,
-          candidate.payStubs.fifthPayStub
-        ].filter(Boolean);
-        
-        for (const date of payStubDates) {
-          if (date && format(new Date(date), 'MMM d, yyyy').toLowerCase().includes(query)) {
+      filtered = filtered.filter(candidate => {
+        // Check if it's a direct match in any standard field
+        // This catches both primitive fields and any custom fields added during Excel import
+        for (const [key, value] of Object.entries(candidate)) {
+          // Skip non-searchable fields like dates and objects
+          if (value === null || value === undefined) continue;
+          if (typeof value === 'boolean') continue;
+          
+          // Format dates for searching
+          if (value instanceof Date) {
+            if (format(value, 'MMM d, yyyy').toLowerCase().includes(query)) {
+              return true;
+            }
+            continue;
+          }
+          
+          // Skip complex objects (but we'll handle them separately)
+          if (typeof value === 'object') continue;
+          
+          // Convert value to string and check if it includes the query
+          const strValue = String(value).toLowerCase();
+          if (strValue.includes(query)) {
             return true;
           }
         }
-      }
-      
-      // Check any additional fields that might have been added during import
-      // This catches fields that aren't in the Candidate type definition but exist in the data
-      const candidateAny = candidate as any;
-      for (const key in candidateAny) {
-        if (
-          !Object.prototype.hasOwnProperty.call(candidateAny, key) ||
-          key in candidate // Skip fields we already checked
-        ) continue;
         
-        const value = candidateAny[key];
-        if (value === null || value === undefined) continue;
-        
-        // Convert to string and search
-        const strValue = String(value).toLowerCase();
-        if (strValue.includes(query)) {
-          return true;
+        // Additional checks for nested fields
+        if (candidate.payStubs) {
+          // Convert any date fields in payStubs to strings for searching
+          const payStubDates = [
+            candidate.payStubs.firstPayStub,
+            candidate.payStubs.secondPayStub,
+            candidate.payStubs.thirdPayStub,
+            candidate.payStubs.fourthPayStub,
+            candidate.payStubs.fifthPayStub
+          ].filter(Boolean);
+          
+          for (const date of payStubDates) {
+            if (date && format(new Date(date), 'MMM d, yyyy').toLowerCase().includes(query)) {
+              return true;
+            }
+          }
         }
-      }
-      
-      return false;
-    });
-  }, [candidates, searchQuery]);
+        
+        // Check any additional fields that might have been added during import
+        // This catches fields that aren't in the Candidate type definition but exist in the data
+        const candidateAny = candidate as any;
+        for (const key in candidateAny) {
+          if (
+            !Object.prototype.hasOwnProperty.call(candidateAny, key) ||
+            key in candidate // Skip fields we already checked
+          ) continue;
+          
+          const value = candidateAny[key];
+          if (value === null || value === undefined) continue;
+          
+          // Convert to string and search
+          const strValue = String(value).toLowerCase();
+          if (strValue.includes(query)) {
+            return true;
+          }
+        }
+        
+        return false;
+      });
+    }
+    
+    return filtered;
+  }, [candidates, searchQuery, showArchived]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -134,13 +150,65 @@ export default function Dashboard() {
     }
   }
 
+  const handleAddCandidate = () => {
+    // Create a new empty candidate with default values
+    const newCandidate: Candidate = {
+      id: crypto.randomUUID(),
+      name: '',
+      email: '',
+      phone: '',
+      stream: 'A', // default value
+      needsAssessment: false,
+      license: 'No',
+      location: '',
+      lastTouchDate: null,
+      nextContact: null,
+      status: 'Pending',
+      category: 'Active Candidate',
+      color: 'green',
+      notes: '',
+      isEmployed: false,
+      archived: false
+    };
+    
+    setSelectedCandidate(newCandidate);
+    setIsEditDialogOpen(true);
+  };
+
   const handleSaveCandidate = (updatedCandidate: Candidate) => {
+    setCandidates(prev => {
+      // Check if this is a new candidate
+      const isNewCandidate = !prev.some(c => c.id === updatedCandidate.id);
+      
+      if (isNewCandidate) {
+        // Add the new candidate to the list
+        return [...prev, updatedCandidate];
+      } else {
+        // Update existing candidate
+        return prev.map(c => c.id === updatedCandidate.id ? updatedCandidate : c);
+      }
+    });
+    
+    setIsEditDialogOpen(false);
+    setSelectedCandidate(null);
+  };
+
+  const handleArchiveCandidate = (candidate: Candidate) => {
+    // Toggle the archived status
+    const updatedCandidate = {
+      ...candidate,
+      archived: !candidate.archived
+    };
+    
     setCandidates(prev => 
-      prev.map(c => c.id === updatedCandidate.id ? updatedCandidate : c)
-    )
-    setIsEditDialogOpen(false)
-    setSelectedCandidate(null)
-  }
+      prev.map(c => c.id === candidate.id ? updatedCandidate : c)
+    );
+    
+    toast.success(updatedCandidate.archived ? 
+      `${candidate.name} has been archived` : 
+      `${candidate.name} has been unarchived`
+    );
+  };
 
   useEffect(() => {
     if (!autoExportEnabled || candidates.length === 0) return;
@@ -215,6 +283,39 @@ export default function Dashboard() {
             <span>Auto Backup</span>
           </Button>
           
+          <Button
+            variant="default"
+            size="sm"
+            className="flex items-center gap-1"
+            onClick={handleAddCandidate}
+          >
+            <PlusCircle className="h-4 w-4" />
+            <span>Add Candidate</span>
+          </Button>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1"
+              >
+                <Filter className="h-4 w-4" />
+                <span>Filter</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setShowArchived(!showArchived)}>
+                <div className="flex items-center">
+                  <div className={`w-4 h-4 mr-2 rounded-sm border ${showArchived ? 'bg-primary border-primary' : 'border-muted-foreground'}`}>
+                    {showArchived && <span className="text-white text-xs flex items-center justify-center">✓</span>}
+                  </div>
+                  Show Archived
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
           {lastAutoExport && (
             <span className="text-xs text-muted-foreground">
               Last backup: {lastAutoExport.toLocaleTimeString()}
@@ -236,13 +337,17 @@ export default function Dashboard() {
       </div>
       
       <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-3 sm:p-6 overflow-hidden">
-        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4">
-          Follow-ups by Date ({filteredCandidates.length} candidates)
-        </h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
+            Follow-ups by Date ({filteredCandidates.length} candidates)
+            {showArchived && <Badge variant="outline" className="ml-2">Including Archived</Badge>}
+          </h2>
+        </div>
         <PivotTable
           data={filteredCandidates}
           dateRange={dateRange}
           onEditCandidate={handleEditCandidate}
+          onArchiveCandidate={handleArchiveCandidate}
           selectedDate={selectedDate}
           onDateSelect={setSelectedDate}
         />

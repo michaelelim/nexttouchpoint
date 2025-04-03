@@ -16,6 +16,7 @@ export interface Candidate {
   category?: string
   color?: string // For Excel import: Green, Yellow, Red, Purple, Gray, Brown
   notes: string
+  archived?: boolean // To mark candidates as archived
   // Pay stub related fields (only applicable if employed)
   isEmployed: boolean
   payStubs?: {

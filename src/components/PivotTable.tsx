@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { 
   Copy, Mail, Phone, MapPin, Calendar, GraduationCap, Hash, 
   ClipboardList, History, Circle, ChevronUp, ChevronDown,
-  LayoutGrid, Calendar as CalendarIcon, Pencil, Check, X
+  LayoutGrid, Calendar as CalendarIcon, Pencil, Check, X, Archive
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { CandidateBarGraph } from './CandidateBarGraph'
@@ -36,11 +36,12 @@ interface PivotTableProps {
     end: Date
   }
   onEditCandidate: (candidate: Candidate, openDialog?: boolean) => void
+  onArchiveCandidate: (candidate: Candidate) => void
   selectedDate: Date | null
   onDateSelect?: (date: Date | null) => void
 }
 
-export default function PivotTable({ data, dateRange, onEditCandidate, selectedDate, onDateSelect }: PivotTableProps) {
+export default function PivotTable({ data, dateRange, onEditCandidate, onArchiveCandidate, selectedDate, onDateSelect }: PivotTableProps) {
   const [selectedDateState, setSelectedDateState] = useState<string | null>(
     selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null
   )
@@ -506,7 +507,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
               key={candidate.id}
               className={`hover:shadow-lg transition-shadow border ${getCardBackgroundColor(currentCategory, candidate.color)} ${
                 meetingCandidates.has(candidate.id) ? 'ring-2 ring-inset ring-blue-500' : ''
-              }`}
+              } ${candidate.archived ? 'opacity-70' : ''}`}
             >
               <CardContent className="p-2 sm:p-4">
                 <div className="flex flex-col space-y-1 sm:space-y-2">
@@ -576,6 +577,15 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                         onClick={() => handleEditCandidate(candidate)}
                       >
                         <Pencil className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => onArchiveCandidate(candidate)}
+                        title={candidate.archived ? "Unarchive candidate" : "Archive candidate"}
+                      >
+                        <Archive className={`h-3 w-3 ${candidate.archived ? 'text-amber-600' : ''}`} />
                       </Button>
                     </div>
                   </div>

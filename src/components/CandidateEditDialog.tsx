@@ -156,7 +156,7 @@ export default function CandidateEditDialog({
         </DialogHeader>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsList className="grid w-full grid-cols-2 mb-3">
             <TabsTrigger value="info" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               <span>Candidate Info</span>
@@ -168,9 +168,9 @@ export default function CandidateEditDialog({
           </TabsList>
           
           <TabsContent value="info" className="mt-0">
-            <div className="grid grid-cols-2 gap-x-8 gap-y-6 py-6 max-h-[70vh] overflow-y-auto px-2">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-3 py-3 max-h-[65vh] overflow-y-auto px-2">
               {/* Left Column */}
-              <div className="space-y-6">
+              <div className="space-y-3">
                 <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
                   <div className="flex gap-2">
@@ -443,7 +443,7 @@ export default function CandidateEditDialog({
           </TabsContent>
           
           <TabsContent value="employment" className="mt-0">
-            <div className="py-6 space-y-6 max-h-[70vh] overflow-y-auto px-2">
+            <div className="py-3 space-y-4 max-h-[65vh] overflow-y-auto px-2">
               <div className="space-y-2">
                 <Label>Employed</Label>
                 <div className="flex items-center space-x-2">
@@ -458,7 +458,7 @@ export default function CandidateEditDialog({
               </div>
 
               {editedCandidate.isEmployed && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>1st Pay</Label>
                     <Popover open={firstPayPopoverOpen} onOpenChange={setFirstPayPopoverOpen}>
