@@ -1,12 +1,28 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { format, parseISO, startOfDay, differenceInDays, addDays, isToday } from 'date-fns'
-import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell } from 'recharts'
+import { format, parseISO, startOfDay, differenceInDays, addDays } from 'date-fns'
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Candidate } from '@/types/candidate'
 import { Label } from './ui/label'
 import { RadioGroup, RadioGroupItem } from './ui/radio-group'
+
+// Define the Cell component inline since it's missing from the recharts types
+const Cell = (props: any) => {
+  const { fill, stroke, strokeWidth, x, y, width, height } = props;
+  return (
+    <rect
+      x={x}
+      y={y}
+      width={width}
+      height={height}
+      fill={fill}
+      stroke={stroke || 'none'}
+      strokeWidth={strokeWidth || 0}
+    />
+  );
+};
 
 interface CandidateBarGraphProps {
   candidates: Candidate[]
@@ -35,6 +51,14 @@ export function CandidateBarGraph({ candidates, onBarClick, selectedDate }: Cand
       setSelectedDateKey(null);
     }
   }, [selectedDate]);
+
+  // Custom isToday function since the import is failing
+  const isToday = (date: Date) => {
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear();
+  };
 
   // Process candidate counts by next contact date
   const candidatesByDate = candidates.reduce((acc, candidate) => {
