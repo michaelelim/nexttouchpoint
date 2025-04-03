@@ -505,14 +505,14 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
             <Card 
               key={candidate.id}
               className={`hover:shadow-lg transition-shadow border ${getCardBackgroundColor(currentCategory, candidate.color)} ${
-                meetingCandidates.has(candidate.id) ? 'outline outline-3 outline-blue-500' : ''
+                meetingCandidates.has(candidate.id) ? 'ring-2 ring-inset ring-blue-500' : ''
               }`}
             >
               <CardContent className="p-2 sm:p-4">
                 <div className="flex flex-col space-y-1 sm:space-y-2">
                   {/* Header with name and status */}
                   <div className="flex justify-between items-start">
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0 mr-2">
                       <h3 className="text-sm sm:text-base font-semibold truncate">{candidate.name}</h3>
                       <div className="flex flex-wrap gap-1 items-center mt-1">
                         {/* Status Badge - Shows the process status */}
@@ -521,7 +521,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                         </Badge>
                         
                         {/* Category Badge - Shows the contact category */}
-                        <div className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-medium ${
+                        <div className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-medium truncate max-w-[100px] ${
                           getCategoryBadgeColor(currentCategory, candidate.color)
                         }`}>
                           {currentCategory}
@@ -529,7 +529,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                         
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-5 w-5 p-0">
+                            <Button variant="ghost" size="sm" className="h-5 w-5 p-0 flex-shrink-0">
                               <Circle className="h-3 w-3" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -550,7 +550,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                         </DropdownMenu>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 flex-shrink-0">
                       <EmailTemplateDropdown candidate={candidate} />
                       <Button
                         variant="ghost"

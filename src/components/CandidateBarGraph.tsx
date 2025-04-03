@@ -177,6 +177,13 @@ export function CandidateBarGraph({ candidates, onBarClick, selectedDate }: Cand
                     }
                   }}
                   className="cursor-pointer"
+                  label={{
+                    position: 'center',
+                    fill: '#000000',
+                    fontSize: 12,
+                    fontWeight: 'bold',
+                    formatter: (value: number) => value.toString()
+                  }}
                 >
                   {chartData.map((entry, index) => (
                     <Cell 
@@ -187,17 +194,6 @@ export function CandidateBarGraph({ candidates, onBarClick, selectedDate }: Cand
                     />
                   ))}
                 </Bar>
-                <Bar
-                  dataKey="count"
-                  fill="transparent"
-                  label={{
-                    position: 'center',
-                    fill: '#000000',
-                    fontSize: 12,
-                    fontWeight: 'bold',
-                    formatter: (value: number) => value.toString()
-                  }}
-                />
               </BarChart>
             </ResponsiveContainer>
           </div>
