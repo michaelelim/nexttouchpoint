@@ -177,12 +177,22 @@ export function CandidateBarGraph({ candidates, onBarClick, selectedDate }: Cand
                     }
                   }}
                   className="cursor-pointer"
-                  label={{
-                    position: 'center',
-                    fill: '#000000',
-                    fontSize: 12,
-                    fontWeight: 'bold',
-                    formatter: (value: number) => value.toString()
+                  label={({ x, y, width, height, value, index }) => {
+                    const entry = chartData[index];
+                    const textColor = entry?.isSelected ? '#ffffff' : '#000000';
+                    return (
+                      <text 
+                        x={x + width / 2} 
+                        y={y + height / 2} 
+                        fill={textColor}
+                        textAnchor="middle" 
+                        dominantBaseline="middle"
+                        fontWeight="bold"
+                        fontSize={12}
+                      >
+                        {value}
+                      </text>
+                    );
                   }}
                 >
                   {chartData.map((entry, index) => (

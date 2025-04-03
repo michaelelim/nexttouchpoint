@@ -24,7 +24,8 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Switch } from '@/components/ui/switch'
-import { Calendar as CalendarIcon, Copy } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Calendar as CalendarIcon, Copy, Briefcase, User } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface CandidateEditDialogProps {
@@ -53,6 +54,7 @@ export default function CandidateEditDialog({
   onSave,
 }: CandidateEditDialogProps) {
   const [editedCandidate, setEditedCandidate] = useState<Candidate>(candidate)
+  const [activeTab, setActiveTab] = useState<string>("info")
   const [nextContactPopoverOpen, setNextContactPopoverOpen] = useState(false)
   const [firstPayPopoverOpen, setFirstPayPopoverOpen] = useState(false)
   const [secondPayPopoverOpen, setSecondPayPopoverOpen] = useState(false)
@@ -152,460 +154,481 @@ export default function CandidateEditDialog({
         <DialogHeader>
           <DialogTitle>Edit Candidate</DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-2 gap-x-8 gap-y-6 py-6 max-h-[70vh] overflow-y-auto px-2">
-          {/* Left Column */}
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="name"
-                  value={editedCandidate.name}
-                  onChange={(e) =>
-                    setEditedCandidate((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                  className="flex-1"
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => copyToClipboard(editedCandidate.name)}
-                  className="h-10 w-10"
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+        
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="info" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              <span>Candidate Info</span>
+            </TabsTrigger>
+            <TabsTrigger value="employment" className="flex items-center gap-2">
+              <Briefcase className="h-4 w-4" />
+              <span>Employment</span>
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="info" className="mt-0">
+            <div className="grid grid-cols-2 gap-x-8 gap-y-6 py-6 max-h-[70vh] overflow-y-auto px-2">
+              {/* Left Column */}
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="name"
+                      value={editedCandidate.name}
+                      onChange={(e) =>
+                        setEditedCandidate((prev) => ({ ...prev, name: e.target.value }))
+                      }
+                      className="flex-1"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => copyToClipboard(editedCandidate.name)}
+                      className="h-10 w-10"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="email"
-                  type="email"
-                  value={editedCandidate.email}
-                  onChange={(e) =>
-                    setEditedCandidate((prev) => ({ ...prev, email: e.target.value }))
-                  }
-                  className="flex-1"
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => copyToClipboard(editedCandidate.email)}
-                  className="h-10 w-10"
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="email"
+                      type="email"
+                      value={editedCandidate.email}
+                      onChange={(e) =>
+                        setEditedCandidate((prev) => ({ ...prev, email: e.target.value }))
+                      }
+                      className="flex-1"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => copyToClipboard(editedCandidate.email)}
+                      className="h-10 w-10"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={editedCandidate.phone}
-                  onChange={(e) =>
-                    setEditedCandidate((prev) => ({ ...prev, phone: e.target.value }))
-                  }
-                  className="flex-1"
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => copyToClipboard(editedCandidate.phone)}
-                  className="h-10 w-10"
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={editedCandidate.phone}
+                      onChange={(e) =>
+                        setEditedCandidate((prev) => ({ ...prev, phone: e.target.value }))
+                      }
+                      className="flex-1"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => copyToClipboard(editedCandidate.phone)}
+                      className="h-10 w-10"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="camsNumber">CAMS #</Label>
-              <Input
-                id="camsNumber"
-                value={editedCandidate.camsNumber || ''}
-                onChange={(e) =>
-                  setEditedCandidate((prev) => ({ ...prev, camsNumber: e.target.value }))
-                }
-                placeholder="Enter CAMS number"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="eapNumber">EAP #</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="eapNumber"
-                  value={editedCandidate.eapNumber || ''}
-                  onChange={(e) =>
-                    setEditedCandidate((prev) => ({ ...prev, eapNumber: e.target.value }))
-                  }
-                  placeholder="Enter EAP number"
-                />
-                {editedCandidate.eapNumber && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => copyToClipboard(editedCandidate.eapNumber!)}
-                    className="h-10 w-10"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Stream</Label>
-              <Select
-                value={editedCandidate.stream}
-                onValueChange={(value) =>
-                  setEditedCandidate((prev) => ({ ...prev, stream: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select stream" />
-                </SelectTrigger>
-                <SelectContent>
-                  {STREAM_OPTIONS.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>License</Label>
-              <Select
-                value={editedCandidate.license}
-                onValueChange={(value) =>
-                  setEditedCandidate((prev) => ({ ...prev, license: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select license" />
-                </SelectTrigger>
-                <SelectContent>
-                  {LICENSE_OPTIONS.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Location</Label>
-              <Select
-                value={editedCandidate.location}
-                onValueChange={(value) =>
-                  setEditedCandidate((prev) => ({ ...prev, location: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select location" />
-                </SelectTrigger>
-                <SelectContent>
-                  {LOCATION_OPTIONS.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Status</Label>
-              <Select
-                value={editedCandidate.status}
-                onValueChange={(value) =>
-                  setEditedCandidate((prev) => ({ ...prev, status: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="Contacted">Contacted</SelectItem>
-                  <SelectItem value="Follow Up">Follow Up</SelectItem>
-                  <SelectItem value="Not Interested">Not Interested</SelectItem>
-                  <SelectItem value="Converted">Converted</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Category</Label>
-              <Select
-                value={editedCandidate.category || ''}
-                onValueChange={(value) => {
-                  // Find the matching color for this category
-                  const categoryOption = CATEGORY_OPTIONS.find(option => option.value === value);
-                  // Update both category and color
-                  setEditedCandidate((prev) => ({
-                    ...prev,
-                    category: value,
-                    color: categoryOption?.color || ''
-                  }));
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORY_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Right Column */}
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <Label>Next Contact Date</Label>
-              <Popover open={nextContactPopoverOpen} onOpenChange={setNextContactPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={`w-full justify-start text-left font-normal ${!editedCandidate.nextContact && 'text-muted-foreground'}`}
-                    onClick={() => setNextContactPopoverOpen(true)}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {editedCandidate.nextContact 
-                      ? format(new Date(editedCandidate.nextContact), 'PPP') 
-                      : 'Pick a date'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={editedCandidate.nextContact ? new Date(editedCandidate.nextContact) : undefined}
-                    onSelect={handleNextContactChange}
-                    initialFocus
+                <div className="space-y-2">
+                  <Label htmlFor="camsNumber">CAMS #</Label>
+                  <Input
+                    id="camsNumber"
+                    value={editedCandidate.camsNumber || ''}
+                    onChange={(e) =>
+                      setEditedCandidate((prev) => ({ ...prev, camsNumber: e.target.value }))
+                    }
+                    placeholder="Enter CAMS number"
                   />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Last Touched</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  value={editedCandidate.lastTouchDate ? format(new Date(editedCandidate.lastTouchDate), 'PPP') : 'Not contacted yet'}
-                  readOnly
-                  className="bg-muted"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Employed</Label>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  checked={editedCandidate.isEmployed}
-                  onCheckedChange={(checked) =>
-                    setEditedCandidate((prev) => ({ ...prev, isEmployed: checked }))
-                  }
-                />
-                <Label>{editedCandidate.isEmployed ? 'Yes' : 'No'}</Label>
-              </div>
-            </div>
-
-            {editedCandidate.isEmployed && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>1st Pay</Label>
-                  <Popover open={firstPayPopoverOpen} onOpenChange={setFirstPayPopoverOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={`w-full justify-start text-left font-normal ${!editedCandidate.payStubs?.firstPayStub && 'text-muted-foreground'}`}
-                        onClick={() => setFirstPayPopoverOpen(true)}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {editedCandidate.payStubs?.firstPayStub ? format(editedCandidate.payStubs.firstPayStub, 'PPP') : 'Pick a date'}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={editedCandidate.payStubs?.firstPayStub || undefined}
-                        onSelect={(date: Date | undefined) => {
-                          setEditedCandidate((prev) => ({
-                            ...prev,
-                            payStubs: {
-                              ...prev.payStubs,
-                              firstPayStub: date || null
-                            }
-                          }));
-                          setFirstPayPopoverOpen(false);
-                        }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>2nd Pay</Label>
-                  <Popover open={secondPayPopoverOpen} onOpenChange={setSecondPayPopoverOpen}>
-                    <PopoverTrigger asChild>
+                  <Label htmlFor="eapNumber">EAP #</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="eapNumber"
+                      value={editedCandidate.eapNumber || ''}
+                      onChange={(e) =>
+                        setEditedCandidate((prev) => ({ ...prev, eapNumber: e.target.value }))
+                      }
+                      placeholder="Enter EAP number"
+                    />
+                    {editedCandidate.eapNumber && (
                       <Button
-                        variant="outline"
-                        className={`w-full justify-start text-left font-normal ${!editedCandidate.payStubs?.secondPayStub && 'text-muted-foreground'}`}
-                        onClick={() => setSecondPayPopoverOpen(true)}
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => copyToClipboard(editedCandidate.eapNumber!)}
+                        className="h-10 w-10"
                       >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {editedCandidate.payStubs?.secondPayStub ? format(editedCandidate.payStubs.secondPayStub, 'PPP') : 'Pick a date'}
+                        <Copy className="h-4 w-4" />
                       </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={editedCandidate.payStubs?.secondPayStub || undefined}
-                        onSelect={(date: Date | undefined) => {
-                          setEditedCandidate((prev) => ({
-                            ...prev,
-                            payStubs: {
-                              ...prev.payStubs,
-                              secondPayStub: date || null
-                            }
-                          }));
-                          setSecondPayPopoverOpen(false);
-                        }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>3rd Pay</Label>
-                  <Popover open={thirdPayPopoverOpen} onOpenChange={setThirdPayPopoverOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={`w-full justify-start text-left font-normal ${!editedCandidate.payStubs?.thirdPayStub && 'text-muted-foreground'}`}
-                        onClick={() => setThirdPayPopoverOpen(true)}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {editedCandidate.payStubs?.thirdPayStub ? format(editedCandidate.payStubs.thirdPayStub, 'PPP') : 'Pick a date'}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={editedCandidate.payStubs?.thirdPayStub || undefined}
-                        onSelect={(date: Date | undefined) => {
-                          setEditedCandidate((prev) => ({
-                            ...prev,
-                            payStubs: {
-                              ...prev.payStubs,
-                              thirdPayStub: date || null
-                            }
-                          }));
-                          setThirdPayPopoverOpen(false);
-                        }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <Label>Stream</Label>
+                  <Select
+                    value={editedCandidate.stream}
+                    onValueChange={(value) =>
+                      setEditedCandidate((prev) => ({ ...prev, stream: value }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select stream" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STREAM_OPTIONS.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>4th Pay</Label>
-                  <Popover open={fourthPayPopoverOpen} onOpenChange={setFourthPayPopoverOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={`w-full justify-start text-left font-normal ${!editedCandidate.payStubs?.fourthPayStub && 'text-muted-foreground'}`}
-                        onClick={() => setFourthPayPopoverOpen(true)}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {editedCandidate.payStubs?.fourthPayStub ? format(editedCandidate.payStubs.fourthPayStub, 'PPP') : 'Pick a date'}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={editedCandidate.payStubs?.fourthPayStub || undefined}
-                        onSelect={(date: Date | undefined) => {
-                          setEditedCandidate((prev) => ({
-                            ...prev,
-                            payStubs: {
-                              ...prev.payStubs,
-                              fourthPayStub: date || null
-                            }
-                          }));
-                          setFourthPayPopoverOpen(false);
-                        }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <Label>License</Label>
+                  <Select
+                    value={editedCandidate.license}
+                    onValueChange={(value) =>
+                      setEditedCandidate((prev) => ({ ...prev, license: value }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select license" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {LICENSE_OPTIONS.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>5th Pay</Label>
-                  <Popover open={fifthPayPopoverOpen} onOpenChange={setFifthPayPopoverOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={`w-full justify-start text-left font-normal ${!editedCandidate.payStubs?.fifthPayStub && 'text-muted-foreground'}`}
-                        onClick={() => setFifthPayPopoverOpen(true)}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {editedCandidate.payStubs?.fifthPayStub ? format(editedCandidate.payStubs.fifthPayStub, 'PPP') : 'Pick a date'}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={editedCandidate.payStubs?.fifthPayStub || undefined}
-                        onSelect={(date: Date | undefined) => {
-                          setEditedCandidate((prev) => ({
-                            ...prev,
-                            payStubs: {
-                              ...prev.payStubs,
-                              fifthPayStub: date || null
-                            }
-                          }));
-                          setFifthPayPopoverOpen(false);
-                        }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <Label>Location</Label>
+                  <Select
+                    value={editedCandidate.location}
+                    onValueChange={(value) =>
+                      setEditedCandidate((prev) => ({ ...prev, location: value }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select location" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {LOCATION_OPTIONS.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Status</Label>
+                  <Select
+                    value={editedCandidate.status}
+                    onValueChange={(value) =>
+                      setEditedCandidate((prev) => ({ ...prev, status: value }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Contacted">Contacted</SelectItem>
+                      <SelectItem value="Follow Up">Follow Up</SelectItem>
+                      <SelectItem value="Not Interested">Not Interested</SelectItem>
+                      <SelectItem value="Converted">Converted</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Category</Label>
+                  <Select
+                    value={editedCandidate.category || ''}
+                    onValueChange={(value) => {
+                      // Find the matching color for this category
+                      const categoryOption = CATEGORY_OPTIONS.find(option => option.value === value);
+                      // Update both category and color
+                      setEditedCandidate((prev) => ({
+                        ...prev,
+                        category: value,
+                        color: categoryOption?.color || ''
+                      }));
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORY_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            )}
 
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                value={editedCandidate.notes || ''}
-                onChange={(e) =>
-                  setEditedCandidate((prev) => ({ ...prev, notes: e.target.value }))
-                }
-                className="h-24"
-              />
+              {/* Right Column */}
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label>Next Contact Date</Label>
+                  <Popover open={nextContactPopoverOpen} onOpenChange={setNextContactPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={`w-full justify-start text-left font-normal ${!editedCandidate.nextContact && 'text-muted-foreground'}`}
+                        onClick={() => setNextContactPopoverOpen(true)}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {editedCandidate.nextContact 
+                          ? format(new Date(editedCandidate.nextContact), 'PPP') 
+                          : 'Pick a date'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={editedCandidate.nextContact ? new Date(editedCandidate.nextContact) : undefined}
+                        onSelect={handleNextContactChange}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Last Touched</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={editedCandidate.lastTouchDate ? format(new Date(editedCandidate.lastTouchDate), 'PPP') : 'Not contacted yet'}
+                      readOnly
+                      className="bg-muted"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Notes</Label>
+                  <Textarea
+                    value={editedCandidate.notes}
+                    onChange={(e) =>
+                      setEditedCandidate((prev) => ({ ...prev, notes: e.target.value }))
+                    }
+                    placeholder="Add notes about the candidate..."
+                    className="min-h-[100px]"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          </TabsContent>
+          
+          <TabsContent value="employment" className="mt-0">
+            <div className="py-6 space-y-6 max-h-[70vh] overflow-y-auto px-2">
+              <div className="space-y-2">
+                <Label>Employed</Label>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    checked={editedCandidate.isEmployed}
+                    onCheckedChange={(checked) =>
+                      setEditedCandidate((prev) => ({ ...prev, isEmployed: checked }))
+                    }
+                  />
+                  <Label>{editedCandidate.isEmployed ? 'Yes' : 'No'}</Label>
+                </div>
+              </div>
+
+              {editedCandidate.isEmployed && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label>1st Pay</Label>
+                    <Popover open={firstPayPopoverOpen} onOpenChange={setFirstPayPopoverOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={`w-full justify-start text-left font-normal ${!editedCandidate.payStubs?.firstPayStub && 'text-muted-foreground'}`}
+                          onClick={() => setFirstPayPopoverOpen(true)}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {editedCandidate.payStubs?.firstPayStub ? format(editedCandidate.payStubs.firstPayStub, 'PPP') : 'Pick a date'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={editedCandidate.payStubs?.firstPayStub || undefined}
+                          onSelect={(date: Date | undefined) => {
+                            setEditedCandidate((prev) => ({
+                              ...prev,
+                              payStubs: {
+                                ...prev.payStubs,
+                                firstPayStub: date || null
+                              }
+                            }));
+                            setFirstPayPopoverOpen(false);
+                          }}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>2nd Pay</Label>
+                    <Popover open={secondPayPopoverOpen} onOpenChange={setSecondPayPopoverOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={`w-full justify-start text-left font-normal ${!editedCandidate.payStubs?.secondPayStub && 'text-muted-foreground'}`}
+                          onClick={() => setSecondPayPopoverOpen(true)}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {editedCandidate.payStubs?.secondPayStub ? format(editedCandidate.payStubs.secondPayStub, 'PPP') : 'Pick a date'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={editedCandidate.payStubs?.secondPayStub || undefined}
+                          onSelect={(date: Date | undefined) => {
+                            setEditedCandidate((prev) => ({
+                              ...prev,
+                              payStubs: {
+                                ...prev.payStubs,
+                                secondPayStub: date || null
+                              }
+                            }));
+                            setSecondPayPopoverOpen(false);
+                          }}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>3rd Pay</Label>
+                    <Popover open={thirdPayPopoverOpen} onOpenChange={setThirdPayPopoverOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={`w-full justify-start text-left font-normal ${!editedCandidate.payStubs?.thirdPayStub && 'text-muted-foreground'}`}
+                          onClick={() => setThirdPayPopoverOpen(true)}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {editedCandidate.payStubs?.thirdPayStub ? format(editedCandidate.payStubs.thirdPayStub, 'PPP') : 'Pick a date'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={editedCandidate.payStubs?.thirdPayStub || undefined}
+                          onSelect={(date: Date | undefined) => {
+                            setEditedCandidate((prev) => ({
+                              ...prev,
+                              payStubs: {
+                                ...prev.payStubs,
+                                thirdPayStub: date || null
+                              }
+                            }));
+                            setThirdPayPopoverOpen(false);
+                          }}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>4th Pay</Label>
+                    <Popover open={fourthPayPopoverOpen} onOpenChange={setFourthPayPopoverOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={`w-full justify-start text-left font-normal ${!editedCandidate.payStubs?.fourthPayStub && 'text-muted-foreground'}`}
+                          onClick={() => setFourthPayPopoverOpen(true)}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {editedCandidate.payStubs?.fourthPayStub ? format(editedCandidate.payStubs.fourthPayStub, 'PPP') : 'Pick a date'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={editedCandidate.payStubs?.fourthPayStub || undefined}
+                          onSelect={(date: Date | undefined) => {
+                            setEditedCandidate((prev) => ({
+                              ...prev,
+                              payStubs: {
+                                ...prev.payStubs,
+                                fourthPayStub: date || null
+                              }
+                            }));
+                            setFourthPayPopoverOpen(false);
+                          }}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>5th Pay</Label>
+                    <Popover open={fifthPayPopoverOpen} onOpenChange={setFifthPayPopoverOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={`w-full justify-start text-left font-normal ${!editedCandidate.payStubs?.fifthPayStub && 'text-muted-foreground'}`}
+                          onClick={() => setFifthPayPopoverOpen(true)}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {editedCandidate.payStubs?.fifthPayStub ? format(editedCandidate.payStubs.fifthPayStub, 'PPP') : 'Pick a date'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={editedCandidate.payStubs?.fifthPayStub || undefined}
+                          onSelect={(date: Date | undefined) => {
+                            setEditedCandidate((prev) => ({
+                              ...prev,
+                              payStubs: {
+                                ...prev.payStubs,
+                                fifthPayStub: date || null
+                              }
+                            }));
+                            setFifthPayPopoverOpen(false);
+                          }}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
+        
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
             Cancel

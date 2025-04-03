@@ -521,7 +521,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                         </Badge>
                         
                         {/* Category Badge - Shows the contact category */}
-                        <div className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-medium truncate max-w-[100px] ${
+                        <div className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-medium truncate max-w-[150px] ${
                           getCategoryBadgeColor(currentCategory, candidate.color)
                         }`}>
                           {currentCategory}
