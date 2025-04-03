@@ -94,7 +94,7 @@ export async function readExcelFile(file: File): Promise<Candidate[]> {
   })
 }
 
-export function exportToExcel(candidates: Candidate[]) {
+export function exportToExcel(candidates: Candidate[], filename: string = 'candidates.xlsx') {
   const worksheet = XLSX.utils.json_to_sheet(
     candidates.map(c => ({
       ID: c.id,
@@ -125,5 +125,5 @@ export function exportToExcel(candidates: Candidate[]) {
   
   const workbook = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Candidates')
-  XLSX.writeFile(workbook, 'candidates.xlsx')
+  XLSX.writeFile(workbook, filename)
 } 

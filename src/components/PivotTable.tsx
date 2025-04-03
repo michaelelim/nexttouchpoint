@@ -49,6 +49,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
   const [editingNextContactId, setEditingNextContactId] = useState<string | null>(null)
   const [tempNextContactDate, setTempNextContactDate] = useState<Date | null>(null)
   const [nextContactPopoverOpen, setNextContactPopoverOpen] = useState(false)
+  const [meetingCandidates, setMeetingCandidates] = useState<Set<string>>(new Set())
   
   // Update internal state when prop changes
   useEffect(() => {
@@ -390,6 +391,19 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
     }
   };
 
+  // Function to toggle meeting status for a candidate
+  const toggleMeetingStatus = (candidateId: string) => {
+    setMeetingCandidates(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(candidateId)) {
+        newSet.delete(candidateId);
+      } else {
+        newSet.add(candidateId);
+      }
+      return newSet;
+    });
+  };
+
   return (
     <div className="w-full overflow-hidden">
       <h1 className="text-lg sm:text-2xl font-bold mb-2 sm:mb-4">Candidate Follow-Up Dashboard</h1>
@@ -490,7 +504,9 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
           return (
             <Card 
               key={candidate.id}
-              className={`hover:shadow-lg transition-shadow border ${getCardBackgroundColor(currentCategory, candidate.color)}`}
+              className={`hover:shadow-lg transition-shadow border ${getCardBackgroundColor(currentCategory, candidate.color)} ${
+                meetingCandidates.has(candidate.id) ? 'outline outline-3 outline-blue-500' : ''
+              }`}
             >
               <CardContent className="p-2 sm:p-4">
                 <div className="flex flex-col space-y-1 sm:space-y-2">
@@ -543,6 +559,15 @@ export default function PivotTable({ data, dateRange, onEditCandidate, selectedD
                         onClick={() => copyToClipboard(candidate.name)}
                       >
                         <Copy className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => toggleMeetingStatus(candidate.id)}
+                        title="Toggle meeting expectation"
+                      >
+                        <Calendar className={`h-3 w-3 ${meetingCandidates.has(candidate.id) ? 'text-blue-600 fill-blue-200' : ''}`} />
                       </Button>
                       <Button
                         variant="ghost"

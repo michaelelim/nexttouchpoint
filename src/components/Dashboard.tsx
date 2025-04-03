@@ -8,8 +8,10 @@ import PivotTable from './PivotTable'
 import ThemeToggle from './ThemeToggle'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
-import { Search } from 'lucide-react'
+import { Search, Clock } from 'lucide-react'
 import CandidateEditDialog from './CandidateEditDialog'
+import { toast } from 'sonner'
+import { getBackupPath, createBackupFilename } from '@/lib/file-system'
 
 export default function Dashboard() {
   const [dateRange, setDateRange] = useState<{ start: Date; end: Date }>({
@@ -25,6 +27,8 @@ export default function Dashboard() {
     // Default to today's date
     return startOfDay(new Date())
   })
+  const [lastAutoExport, setLastAutoExport] = useState<Date | null>(null);
+  const [autoExportEnabled, setAutoExportEnabled] = useState<boolean>(false);
 
   const filteredCandidates = useMemo(() => {
     if (!searchQuery.trim()) return candidates;
@@ -138,6 +142,41 @@ export default function Dashboard() {
     setSelectedCandidate(null)
   }
 
+  useEffect(() => {
+    if (!autoExportEnabled || candidates.length === 0) return;
+    
+    // Auto-export every 30 minutes
+    const intervalId = setInterval(() => {
+      try {
+        // Get backup path and create filename
+        const backupPath = getBackupPath();
+        const filename = createBackupFilename();
+        const fullPath = `${backupPath}/${filename}`;
+        
+        // Create backup folder if it doesn't exist
+        if (typeof window !== 'undefined' && window.electron) {
+          window.electron.sendMessage('create-backup-folder', { path: backupPath });
+          
+          // In Electron environment, we would handle the actual file writing here
+          // For now, we'll use the regular export function
+          exportToExcel(candidates, fullPath);
+          setLastAutoExport(new Date());
+          toast.success('Auto-backup created successfully');
+        } else {
+          // In browser environment without Electron, just download the file
+          exportToExcel(candidates);
+          setLastAutoExport(new Date());
+          toast.success('Auto-backup downloaded (browser mode)');
+        }
+      } catch (error) {
+        console.error('Error during auto-export:', error);
+        toast.error('Failed to create auto-backup');
+      }
+    }, 30 * 60 * 1000); // 30 minutes
+    
+    return () => clearInterval(intervalId);
+  }, [autoExportEnabled, candidates]);
+
   return (
     <div className="w-full mx-auto space-y-4 px-2 sm:px-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-2">
@@ -164,6 +203,23 @@ export default function Dashboard() {
           >
             Export Excel
           </Button>
+          
+          <Button
+            variant={autoExportEnabled ? "default" : "outline"}
+            size="sm"
+            className="flex items-center gap-1"
+            onClick={() => setAutoExportEnabled(!autoExportEnabled)}
+            disabled={candidates.length === 0}
+          >
+            <Clock className="h-4 w-4" />
+            <span>Auto Backup</span>
+          </Button>
+          
+          {lastAutoExport && (
+            <span className="text-xs text-muted-foreground">
+              Last backup: {lastAutoExport.toLocaleTimeString()}
+            </span>
+          )}
           
           <div className="relative w-full sm:w-64 mt-2 sm:mt-0">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
