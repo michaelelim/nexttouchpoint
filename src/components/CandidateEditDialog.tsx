@@ -25,7 +25,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Calendar as CalendarIcon, Copy, Briefcase, User } from 'lucide-react'
+import { Calendar as CalendarIcon, Copy } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface CandidateEditDialogProps {
@@ -157,14 +157,8 @@ export default function CandidateEditDialog({
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-3">
-            <TabsTrigger value="info" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              <span>Candidate Info</span>
-            </TabsTrigger>
-            <TabsTrigger value="employment" className="flex items-center gap-2">
-              <Briefcase className="h-4 w-4" />
-              <span>Employment</span>
-            </TabsTrigger>
+            <TabsTrigger value="info">Candidate Info</TabsTrigger>
+            <TabsTrigger value="employment">Employment</TabsTrigger>
           </TabsList>
           
           <TabsContent value="info" className="mt-0">
@@ -239,82 +233,88 @@ export default function CandidateEditDialog({
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="camsNumber">CAMS #</Label>
-                  <Input
-                    id="camsNumber"
-                    value={editedCandidate.camsNumber || ''}
-                    onChange={(e) =>
-                      setEditedCandidate((prev) => ({ ...prev, camsNumber: e.target.value }))
-                    }
-                    placeholder="Enter CAMS number"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="eapNumber">EAP #</Label>
-                  <div className="flex gap-2">
+                {/* CAMS and EAP on the same line */}
+                <div className="grid grid-cols-2 gap-x-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="camsNumber">CAMS #</Label>
                     <Input
-                      id="eapNumber"
-                      value={editedCandidate.eapNumber || ''}
+                      id="camsNumber"
+                      value={editedCandidate.camsNumber || ''}
                       onChange={(e) =>
-                        setEditedCandidate((prev) => ({ ...prev, eapNumber: e.target.value }))
+                        setEditedCandidate((prev) => ({ ...prev, camsNumber: e.target.value }))
                       }
-                      placeholder="Enter EAP number"
+                      placeholder="Enter CAMS number"
                     />
-                    {editedCandidate.eapNumber && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => copyToClipboard(editedCandidate.eapNumber!)}
-                        className="h-10 w-10"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="eapNumber">EAP #</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="eapNumber"
+                        value={editedCandidate.eapNumber || ''}
+                        onChange={(e) =>
+                          setEditedCandidate((prev) => ({ ...prev, eapNumber: e.target.value }))
+                        }
+                        placeholder="Enter EAP number"
+                      />
+                      {editedCandidate.eapNumber && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => copyToClipboard(editedCandidate.eapNumber!)}
+                          className="h-10 w-10"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Stream</Label>
-                  <Select
-                    value={editedCandidate.stream}
-                    onValueChange={(value) =>
-                      setEditedCandidate((prev) => ({ ...prev, stream: value }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select stream" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {STREAM_OPTIONS.map((option) => (
-                        <SelectItem key={option} value={option}>
-                          {option}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* Stream and License on the same line */}
+                <div className="grid grid-cols-2 gap-x-3">
+                  <div className="space-y-2">
+                    <Label>Stream</Label>
+                    <Select
+                      value={editedCandidate.stream}
+                      onValueChange={(value) =>
+                        setEditedCandidate((prev) => ({ ...prev, stream: value }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select stream" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {STREAM_OPTIONS.map((option) => (
+                          <SelectItem key={option} value={option}>
+                            {option}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label>License</Label>
-                  <Select
-                    value={editedCandidate.license}
-                    onValueChange={(value) =>
-                      setEditedCandidate((prev) => ({ ...prev, license: value }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select license" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {LICENSE_OPTIONS.map((option) => (
-                        <SelectItem key={option} value={option}>
-                          {option}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="space-y-2">
+                    <Label>License</Label>
+                    <Select
+                      value={editedCandidate.license}
+                      onValueChange={(value) =>
+                        setEditedCandidate((prev) => ({ ...prev, license: value }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select license" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {LICENSE_OPTIONS.map((option) => (
+                          <SelectItem key={option} value={option}>
+                            {option}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -338,58 +338,61 @@ export default function CandidateEditDialog({
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Status</Label>
-                  <Select
-                    value={editedCandidate.status}
-                    onValueChange={(value) =>
-                      setEditedCandidate((prev) => ({ ...prev, status: value }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Pending">Pending</SelectItem>
-                      <SelectItem value="Contacted">Contacted</SelectItem>
-                      <SelectItem value="Follow Up">Follow Up</SelectItem>
-                      <SelectItem value="Not Interested">Not Interested</SelectItem>
-                      <SelectItem value="Converted">Converted</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* Status and Category on the same line */}
+                <div className="grid grid-cols-2 gap-x-3">
+                  <div className="space-y-2">
+                    <Label>Status</Label>
+                    <Select
+                      value={editedCandidate.status}
+                      onValueChange={(value) =>
+                        setEditedCandidate((prev) => ({ ...prev, status: value }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Pending">Pending</SelectItem>
+                        <SelectItem value="Contacted">Contacted</SelectItem>
+                        <SelectItem value="Follow Up">Follow Up</SelectItem>
+                        <SelectItem value="Not Interested">Not Interested</SelectItem>
+                        <SelectItem value="Converted">Converted</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label>Category</Label>
-                  <Select
-                    value={editedCandidate.category || ''}
-                    onValueChange={(value) => {
-                      // Find the matching color for this category
-                      const categoryOption = CATEGORY_OPTIONS.find(option => option.value === value);
-                      // Update both category and color
-                      setEditedCandidate((prev) => ({
-                        ...prev,
-                        category: value,
-                        color: categoryOption?.color || ''
-                      }));
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CATEGORY_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="space-y-2">
+                    <Label>Category</Label>
+                    <Select
+                      value={editedCandidate.category || ''}
+                      onValueChange={(value) => {
+                        // Find the matching color for this category
+                        const categoryOption = CATEGORY_OPTIONS.find(option => option.value === value);
+                        // Update both category and color
+                        setEditedCandidate((prev) => ({
+                          ...prev,
+                          category: value,
+                          color: categoryOption?.color || ''
+                        }));
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CATEGORY_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
 
               {/* Right Column */}
-              <div className="space-y-6">
+              <div className="space-y-3">
                 <div className="space-y-2">
                   <Label>Next Contact Date</Label>
                   <Popover open={nextContactPopoverOpen} onOpenChange={setNextContactPopoverOpen}>

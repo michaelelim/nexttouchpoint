@@ -25,6 +25,16 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar as UICalendar } from "@/components/ui/calendar"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 type SortOption = 'name_asc' | 'name_desc' | 'last_contact_asc' | 'last_contact_desc' | 'category';
 type ColumnLayout = '1' | '2' | '3';
@@ -51,6 +61,8 @@ export default function PivotTable({ data, dateRange, onEditCandidate, onArchive
   const [tempNextContactDate, setTempNextContactDate] = useState<Date | null>(null)
   const [nextContactPopoverOpen, setNextContactPopoverOpen] = useState(false)
   const [meetingCandidates, setMeetingCandidates] = useState<Set<string>>(new Set())
+  const [candidateToArchive, setCandidateToArchive] = useState<Candidate | null>(null)
+  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false)
   
   // Update internal state when prop changes
   useEffect(() => {
@@ -405,6 +417,24 @@ export default function PivotTable({ data, dateRange, onEditCandidate, onArchive
     });
   };
 
+  const handleArchiveDialogOpen = (candidate: Candidate) => {
+    setCandidateToArchive(candidate);
+    setArchiveDialogOpen(true);
+  };
+
+  const handleArchiveConfirm = () => {
+    if (candidateToArchive) {
+      onArchiveCandidate(candidateToArchive);
+      setCandidateToArchive(null);
+    }
+    setArchiveDialogOpen(false);
+  };
+
+  const handleArchiveCancel = () => {
+    setCandidateToArchive(null);
+    setArchiveDialogOpen(false);
+  };
+
   return (
     <div className="w-full overflow-hidden">
       <h1 className="text-lg sm:text-2xl font-bold mb-2 sm:mb-4">Candidate Follow-Up Dashboard</h1>
@@ -416,6 +446,30 @@ export default function PivotTable({ data, dateRange, onEditCandidate, onArchive
         />
       </div>
       
+      {/* Archive Confirmation Dialog */}
+      <AlertDialog open={archiveDialogOpen} onOpenChange={setArchiveDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {candidateToArchive?.archived 
+                ? "Unarchive Candidate" 
+                : "Archive Candidate"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {candidateToArchive?.archived 
+                ? `Are you sure you want to unarchive ${candidateToArchive?.name}?` 
+                : `Are you sure you want to archive ${candidateToArchive?.name}? Archived candidates will not appear in the main view unless "Show Archived" is enabled.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleArchiveCancel}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleArchiveConfirm}>
+              {candidateToArchive?.archived ? "Unarchive" : "Archive"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-4 sm:mt-8 mb-4 gap-2">
         <h2 className="text-base sm:text-xl font-semibold">
           {selectedDateState 
@@ -582,7 +636,7 @@ export default function PivotTable({ data, dateRange, onEditCandidate, onArchive
                         variant="ghost"
                         size="sm"
                         className="h-6 w-6 p-0"
-                        onClick={() => onArchiveCandidate(candidate)}
+                        onClick={() => handleArchiveDialogOpen(candidate)}
                         title={candidate.archived ? "Unarchive candidate" : "Archive candidate"}
                       >
                         <Archive className={`h-3 w-3 ${candidate.archived ? 'text-amber-600' : ''}`} />
