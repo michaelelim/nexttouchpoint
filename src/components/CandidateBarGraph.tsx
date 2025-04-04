@@ -64,8 +64,15 @@ export function CandidateBarGraph({ candidates, onBarClick, selectedDate }: Cand
   const candidatesByDate = candidates.reduce((acc, candidate) => {
     if (!candidate.nextContact) return acc
 
-    // Convert to local date string to avoid timezone issues
-    const dateKey = new Date(candidate.nextContact).toISOString().split('T')[0]
+    // Create a date object from the candidate's nextContact date
+    const nextContactDate = new Date(candidate.nextContact);
+    
+    // Normalize to yyyy-MM-dd format without timezone issues
+    const dateKey = [
+      nextContactDate.getFullYear(),
+      String(nextContactDate.getMonth() + 1).padStart(2, '0'),
+      String(nextContactDate.getDate()).padStart(2, '0')
+    ].join('-');
     
     if (!acc[dateKey]) {
       acc[dateKey] = {

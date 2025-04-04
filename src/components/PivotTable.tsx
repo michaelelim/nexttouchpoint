@@ -156,7 +156,16 @@ export default function PivotTable({ data, dateRange, onEditCandidate, onArchive
   let filteredCandidates = selectedDateState
     ? data.filter((candidate) => {
         if (!candidate.nextContact) return false;
-        const candidateDate = new Date(candidate.nextContact).toISOString().split('T')[0];
+        
+        // Create a date object from the candidate's nextContact date and normalize it to remove time
+        const candidateDateObj = new Date(candidate.nextContact);
+        // Create normalized date in yyyy-MM-dd format
+        const candidateDate = [
+          candidateDateObj.getFullYear(),
+          String(candidateDateObj.getMonth() + 1).padStart(2, '0'),
+          String(candidateDateObj.getDate()).padStart(2, '0')
+        ].join('-');
+        
         return candidateDate === selectedDateState;
       })
     : data;
@@ -235,7 +244,13 @@ export default function PivotTable({ data, dateRange, onEditCandidate, onArchive
   }
 
   const handleBarClick = (date: Date) => {
-    const dateStr = format(date, 'yyyy-MM-dd')
+    // Create normalized date in yyyy-MM-dd format to avoid timezone issues
+    const dateStr = [
+      date.getFullYear(),
+      String(date.getMonth() + 1).padStart(2, '0'),
+      String(date.getDate()).padStart(2, '0')
+    ].join('-');
+    
     // If clicking the same date again, clear the selection
     if (dateStr === selectedDateState) {
       setSelectedDateState(null)
@@ -748,7 +763,11 @@ export default function PivotTable({ data, dateRange, onEditCandidate, onArchive
                         <>
                           <span className="flex-1">
                             {candidate.nextContact
-                              ? format(new Date(candidate.nextContact), 'MMM d')
+                              ? (() => {
+                                  // Create a date object with the correct date components to avoid timezone issues
+                                  const nextDate = new Date(candidate.nextContact);
+                                  return format(nextDate, 'MMM d')
+                                })()
                               : 'No date'}
                           </span>
                           <Button
