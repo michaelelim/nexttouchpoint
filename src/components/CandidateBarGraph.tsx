@@ -46,7 +46,13 @@ export function CandidateBarGraph({ candidates, onBarClick, selectedDate }: Cand
   // Update selectedDateKey when selectedDate prop changes
   useEffect(() => {
     if (selectedDate) {
-      setSelectedDateKey(selectedDate.toISOString().split('T')[0]);
+      // Use same normalized format for consistency
+      const dateKey = [
+        selectedDate.getFullYear(),
+        String(selectedDate.getMonth() + 1).padStart(2, '0'),
+        String(selectedDate.getDate()).padStart(2, '0')
+      ].join('-');
+      setSelectedDateKey(dateKey);
     } else {
       setSelectedDateKey(null);
     }
@@ -55,9 +61,26 @@ export function CandidateBarGraph({ candidates, onBarClick, selectedDate }: Cand
   // Custom isToday function since the import is failing
   const isToday = (date: Date) => {
     const today = new Date();
-    return date.getDate() === today.getDate() &&
+    return (
+      date.getDate() === today.getDate() &&
       date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear();
+      date.getFullYear() === today.getFullYear()
+    );
+  };
+
+  // Helper function to compare dates without time
+  const isSameOrAfterDay = (date: Date, referenceDate: Date) => {
+    const normalizedDate = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    );
+    const normalizedReference = new Date(
+      referenceDate.getFullYear(),
+      referenceDate.getMonth(),
+      referenceDate.getDate()
+    );
+    return normalizedDate >= normalizedReference;
   };
 
   // Process candidate counts by next contact date
@@ -91,8 +114,24 @@ export function CandidateBarGraph({ candidates, onBarClick, selectedDate }: Cand
   const today = startOfDay(new Date())
   const endDate = addDays(today, dayRange - 1)
   
-  // Create data for dates
-  const chartData = Object.entries(candidatesByDate)
+  // Generate all dates in the range to ensure they all appear
+  const allDatesInRange: Record<string, { candidates: Candidate[], count: number }> = {};
+  let currentDate = today;
+  
+  // Initialize all dates in the range with empty candidate arrays
+  while (currentDate <= endDate) {
+    const dateKey = [
+      currentDate.getFullYear(),
+      String(currentDate.getMonth() + 1).padStart(2, '0'),
+      String(currentDate.getDate()).padStart(2, '0')
+    ].join('-');
+    
+    allDatesInRange[dateKey] = candidatesByDate[dateKey] || { candidates: [], count: 0 };
+    currentDate = addDays(currentDate, 1);
+  }
+  
+  // Create data for dates - use allDatesInRange instead of candidatesByDate to include empty dates
+  const chartData = Object.entries(allDatesInRange)
     .map(([dateStr, { count, candidates }]) => {
       const date = parseISO(dateStr)
       const daysFromNow = differenceInDays(date, today)
@@ -128,10 +167,6 @@ export function CandidateBarGraph({ candidates, onBarClick, selectedDate }: Cand
         isSelected
       }
     })
-    .filter(item => 
-      // Include today and future dates within range
-      (isToday(item.date) || item.date > today) && item.date <= endDate
-    )
     .sort((a, b) => a.date.getTime() - b.date.getTime())
 
   const CustomTooltip = ({ active, payload }: any) => {

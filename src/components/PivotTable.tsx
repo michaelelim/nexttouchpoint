@@ -67,11 +67,17 @@ export default function PivotTable({ data, dateRange, onEditCandidate, onArchive
   // Update internal state when prop changes
   useEffect(() => {
     if (selectedDate) {
-      setSelectedDateState(format(selectedDate, 'yyyy-MM-dd'))
+      // Create normalized date in yyyy-MM-dd format to avoid timezone issues
+      const dateStr = [
+        selectedDate.getFullYear(),
+        String(selectedDate.getMonth() + 1).padStart(2, '0'),
+        String(selectedDate.getDate()).padStart(2, '0')
+      ].join('-');
+      setSelectedDateState(dateStr);
     } else {
-      setSelectedDateState(null)
+      setSelectedDateState(null);
     }
-  }, [selectedDate])
+  }, [selectedDate]);
   
   const dates = eachDayOfInterval({
     start: dateRange.start,
